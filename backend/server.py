@@ -848,6 +848,31 @@ async def get_chat_messages(room_id: str):
 @api_router.post("/therapist/chat", response_model=TherapistChatResponse)
 async def therapist_chat(chat_input: TherapistChatMessage):
     try:
+        # Check for crisis keywords first
+        crisis_keywords = [
+            'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die', 
+            'self-harm', 'hurt myself', 'cut myself', 'harm myself', 
+            'no reason to live', 'better off dead', "can't go on", 
+            'end it all', 'take my life', 'overdose'
+        ]
+        
+        message_lower = chat_input.message.lower()
+        detected_keywords = [keyword for keyword in crisis_keywords if keyword in message_lower]
+        crisis_detected = len(detected_keywords) > 0
+        crisis_severity = None
+        
+        if crisis_detected:
+            # Determine severity
+            high_severity_keywords = ['kill myself', 'end my life', 'suicide', 'suicidal', 'take my life', 'overdose']
+            medium_severity_keywords = ['want to die', 'better off dead', 'no reason to live', "can't go on"]
+            
+            if any(keyword in message_lower for keyword in high_severity_keywords):
+                crisis_severity = "high"
+            elif any(keyword in message_lower for keyword in medium_severity_keywords):
+                crisis_severity = "medium"
+            else:
+                crisis_severity = "low"
+        
         # System prompt to ensure it acts as a professional therapist
         system_instruction = """You are a professional, licensed therapist specializing in mental health support. 
         
@@ -859,12 +884,12 @@ STRICT GUIDELINES:
 5. Acknowledge feelings and validate emotions
 6. Ask clarifying questions to understand the user better
 7. Never diagnose conditions - only provide support and coping strategies
-8. If a question is about serious self-harm or emergency, recommend professional help immediately
+8. If a question is about serious self-harm or emergency, acknowledge their pain, ask gentle follow-up questions to understand their current state, and the system will show crisis resources
 
 Response format:
 - Start with empathy and validation
 - Provide therapeutic insights
-- Offer practical coping strategies
+- Ask clarifying questions when appropriate
 - Keep responses conversational (3-4 sentences)
 
 Remember: You are ONLY a mental health therapist. Politely decline any non-therapy topics."""
@@ -896,7 +921,9 @@ Provide a therapeutic response:"""
         chat_record = TherapistChatResponse(
             user_id=chat_input.user_id,
             user_message=chat_input.message,
-            therapist_response=therapist_response
+            therapist_response=therapist_response,
+            crisis_detected=crisis_detected,
+            crisis_severity=crisis_severity
         )
         
         # Save to MongoDB
