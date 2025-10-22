@@ -94,7 +94,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link to="/mood-log" className="block" data-testid="mood-log-card">
             <Card className="h-full border-2 hover:border-teal-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1">
               <CardHeader>
@@ -122,6 +122,27 @@ const Dashboard = () => {
                 </div>
                 <CardDescription className="text-sm">
                   View insights and patterns from your mood logs with AI-powered analysis.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link to="/achievements" className="block" data-testid="achievements-card">
+            <Card className="h-full border-2 hover:border-yellow-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1 relative overflow-hidden">
+              {achievementCount > 0 && (
+                <div className="absolute top-3 right-3 bg-yellow-500 text-white text-xs font-bold rounded-full w-8 h-8 flex items-center justify-center animate-pulse">
+                  {achievementCount}
+                </div>
+              )}
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-yellow-100 rounded-full">
+                    <Trophy className="w-8 h-8 text-yellow-600" />
+                  </div>
+                  <CardTitle className="text-xl">Achievements</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  Unlock badges and celebrate your progress on your wellness journey.
                 </CardDescription>
               </CardHeader>
             </Card>
