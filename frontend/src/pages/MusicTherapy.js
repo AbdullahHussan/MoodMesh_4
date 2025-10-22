@@ -66,7 +66,14 @@ const MusicTherapy = () => {
     // Check for Spotify callback
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
-    if (code) {
+    const error = urlParams.get("error");
+    
+    if (error) {
+      // Spotify returned an error
+      const errorDescription = urlParams.get("error_description") || "Authorization failed";
+      toast.error(`Spotify Error: ${errorDescription}`);
+      window.history.replaceState({}, document.title, "/music");
+    } else if (code) {
       handleSpotifyCallback(code);
       window.history.replaceState({}, document.title, "/music");
     }
