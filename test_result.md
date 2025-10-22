@@ -189,7 +189,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Meditation & Breathing Exercises API"
     - "Meditation & Breathing Page"
     - "Meditation Navigation Card"
   stuck_tasks: []
