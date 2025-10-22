@@ -389,7 +389,7 @@ const MoodLogPage = () => {
   );
 };
 
-// AI Therapist Chat
+// AI Therapist Chat - Enhanced Version
 const AITherapist = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -398,6 +398,13 @@ const AITherapist = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [crisisSeverity, setCrisisSeverity] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [showTechniques, setShowTechniques] = useState(false);
+  const [suggestedTechniques, setSuggestedTechniques] = useState([]);
+  const [moodContext, setMoodContext] = useState(null);
+  const [showInsights, setShowInsights] = useState(false);
+  const [insights, setInsights] = useState(null);
+  const [showMoodCheckIn, setShowMoodCheckIn] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("moodmesh_user");
@@ -414,11 +421,27 @@ const AITherapist = () => {
   const loadChatHistory = async (userId) => {
     try {
       const response = await axios.get(`${API}/therapist/history/${userId}`);
-      const history = response.data.map(chat => ([
-        { role: 'user', content: chat.user_message },
-        { role: 'therapist', content: chat.therapist_response }
+      const history = response.data.map(chat => ({
+        role: chat.user_message ? 'user' : 'therapist',
+        content: chat.user_message || chat.therapist_response,
+        user_message: chat.user_message,
+        therapist_response: chat.therapist_response,
+        techniques: chat.suggested_techniques || [],
+        moodContext: chat.mood_context
+      }));
+      
+      // Flatten to show as conversation
+      const flatHistory = response.data.map(chat => ([
+        { role: 'user', content: chat.user_message, techniques: [], moodContext: null },
+        { role: 'therapist', content: chat.therapist_response, techniques: chat.suggested_techniques || [], moodContext: chat.mood_context }
       ])).flat();
-      setMessages(history);
+      
+      setMessages(flatHistory);
+      
+      // Set session ID from last message
+      if (response.data.length > 0) {
+        setSessionId(response.data[response.data.length - 1].session_id);
+      }
     } catch (error) {
       console.error("Failed to load chat history", error);
     }
@@ -427,7 +450,7 @@ const AITherapist = () => {
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    const userMsg = { role: 'user', content: inputMessage };
+    const userMsg = { role: 'user', content: inputMessage, techniques: [], moodContext: null };
     setMessages(prev => [...prev, userMsg]);
     setInputMessage("");
     setIsLoading(true);
@@ -435,11 +458,32 @@ const AITherapist = () => {
     try {
       const response = await axios.post(`${API}/therapist/chat`, {
         user_id: user.user_id,
-        message: inputMessage
+        message: inputMessage,
+        session_id: sessionId
       });
 
-      const therapistMsg = { role: 'therapist', content: response.data.therapist_response };
+      // Set session ID if this is first message
+      if (!sessionId && response.data.session_id) {
+        setSessionId(response.data.session_id);
+      }
+
+      const therapistMsg = { 
+        role: 'therapist', 
+        content: response.data.therapist_response,
+        techniques: response.data.suggested_techniques || [],
+        moodContext: response.data.mood_context
+      };
       setMessages(prev => [...prev, therapistMsg]);
+      
+      // Store suggested techniques for display
+      if (response.data.suggested_techniques && response.data.suggested_techniques.length > 0) {
+        setSuggestedTechniques(response.data.suggested_techniques);
+      }
+      
+      // Store mood context
+      if (response.data.mood_context) {
+        setMoodContext(response.data.mood_context);
+      }
       
       // Check if crisis was detected
       if (response.data.crisis_detected) {
@@ -450,11 +494,49 @@ const AITherapist = () => {
       toast.error("Failed to get response from therapist");
       setMessages(prev => [...prev, { 
         role: 'therapist', 
-        content: "I apologize, I'm having trouble connecting right now. Please try again in a moment." 
+        content: "I apologize, I'm having trouble connecting right now. Please try again in a moment.",
+        techniques: [],
+        moodContext: null
       }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadInsights = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${API}/therapist/insights/${user.user_id}`);
+      setInsights(response.data);
+      setShowInsights(true);
+    } catch (error) {
+      toast.error("Failed to load insights");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const submitMoodCheckIn = async (rating, emotions, note) => {
+    try {
+      await axios.post(`${API}/therapist/mood-checkin`, {
+        user_id: user.user_id,
+        mood_rating: rating,
+        emotions: emotions,
+        note: note
+      });
+      toast.success("Mood check-in saved!");
+      setShowMoodCheckIn(false);
+    } catch (error) {
+      toast.error("Failed to save mood check-in");
+    }
+  };
+
+  const startNewSession = () => {
+    setSessionId(null);
+    setMessages([]);
+    setSuggestedTechniques([]);
+    setMoodContext(null);
+    toast.success("New therapy session started");
   };
 
   if (!user) return null;
