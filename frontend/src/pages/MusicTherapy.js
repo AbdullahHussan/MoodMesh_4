@@ -134,7 +134,8 @@ const MusicTherapy = () => {
       toast.success("Connected to Spotify!");
     } catch (error) {
       console.error("Spotify callback error:", error);
-      toast.error("Failed to connect to Spotify");
+      const errorMessage = error.response?.data?.detail || "Failed to connect to Spotify. Please check your Spotify app credentials.";
+      toast.error(errorMessage);
     }
   };
 
