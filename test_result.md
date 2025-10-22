@@ -192,6 +192,30 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Added Meditation & Breathing card to dashboard and route to /meditation page"
+  
+  - task: "Resource Library Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Resources.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive Resource Library page with: (1) Category tabs navigation (All, Conditions, Techniques, Videos, Reading, Myths), (2) Search functionality across titles, descriptions, and tags, (3) Bookmarks tab showing user's saved resources, (4) Resource cards with category icons, view counts, duration, tags, (5) Full resource detail modal with complete content, author info, external links for videos, (6) Bookmark/unbookmark functionality with visual feedback, (7) Category summary counts, (8) Responsive grid layout with hover effects, (9) Auto-incrementing view count when resource is opened, (10) Beautiful color-coded categories."
+  
+  - task: "Resource Library Navigation Card"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Resource Library card to dashboard with BookOpen icon and route to /resources page"
 
 metadata:
   created_by: "main_agent"
