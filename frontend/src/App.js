@@ -523,6 +523,90 @@ const AITherapist = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Crisis Resources Modal */}
+      {showCrisisModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <CardHeader className="bg-gradient-to-r from-purple-100 to-blue-100">
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Shield className="w-8 h-8 text-purple-600" />
+                Crisis Support Resources
+              </CardTitle>
+              <CardDescription>
+                I'm concerned about what you've shared. You're not alone, and help is available right now.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                  <h3 className="font-bold text-red-900 mb-2 flex items-center gap-2">
+                    <Phone className="w-5 h-5" />
+                    Immediate Help Available
+                  </h3>
+                  <div className="space-y-2 text-red-800">
+                    <p><strong>US Crisis Line:</strong> Call or text <span className="font-bold text-xl">988</span></p>
+                    <p><strong>Emergency:</strong> Call <span className="font-bold text-xl">911</span></p>
+                    <p><strong>Crisis Text Line:</strong> Text HOME to <span className="font-bold">741741</span></p>
+                  </div>
+                </div>
+
+                {crisisSeverity === 'high' && (
+                  <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
+                    <p className="font-semibold text-amber-900">
+                      If you're in immediate danger or having thoughts of hurting yourself right now, 
+                      please call 988 or 911 immediately, or go to your nearest emergency room.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900">Additional Support:</h4>
+                  <Button 
+                    onClick={() => {
+                      setShowCrisisModal(false);
+                      navigate('/crisis-support');
+                    }}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    View Full Crisis Resources & Safety Plan
+                  </Button>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">What Helps Right Now:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-blue-800 text-sm">
+                    <li>Reach out to someone you trust</li>
+                    <li>Use grounding techniques (5-4-3-2-1: 5 things you see, 4 you hear, 3 you touch, 2 you smell, 1 you taste)</li>
+                    <li>Go to a safe, public place</li>
+                    <li>Remove immediate access to harmful means</li>
+                    <li>Remember: This feeling is temporary, even if it doesn't feel like it now</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setShowCrisisModal(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Continue Conversation
+                  </Button>
+                  <Button 
+                    onClick={() => window.open('tel:988')}
+                    className="flex-1 bg-red-600 hover:bg-red-700"
+                  >
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call 988 Now
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
       <Toaster />
     </div>
   );
