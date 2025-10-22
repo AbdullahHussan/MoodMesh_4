@@ -143,6 +143,58 @@ class CommunityResponse(BaseModel):
     is_member: bool = False
     created_at: datetime
 
+# Crisis Support Models
+class EmergencyContact(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    name: str
+    phone: str
+    relationship: str
+    email: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EmergencyContactCreate(BaseModel):
+    user_id: str
+    name: str
+    phone: str
+    relationship: str
+    email: Optional[str] = None
+
+class EmergencyContactUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    relationship: Optional[str] = None
+    email: Optional[str] = None
+
+class SafetyPlan(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    warning_signs: List[str] = []
+    coping_strategies: List[str] = []
+    contacts_to_call: List[str] = []
+    professional_contacts: List[str] = []
+    safe_environment_steps: List[str] = []
+    reasons_to_live: List[str] = []
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SafetyPlanCreate(BaseModel):
+    user_id: str
+    warning_signs: List[str] = []
+    coping_strategies: List[str] = []
+    contacts_to_call: List[str] = []
+    professional_contacts: List[str] = []
+    safe_environment_steps: List[str] = []
+    reasons_to_live: List[str] = []
+
+class CrisisDetectionResponse(BaseModel):
+    is_crisis: bool
+    severity: str  # "low", "medium", "high"
+    detected_keywords: List[str]
+    follow_up_question: Optional[str] = None
+
 # JWT Helper Functions
 def create_access_token(data: dict):
     to_encode = data.copy()
