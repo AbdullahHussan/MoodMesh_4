@@ -543,101 +543,246 @@ const AITherapist = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-6">
-      <div className="max-w-4xl mx-auto h-[calc(100vh-3rem)] flex flex-col">
-        <div className="mb-4 flex items-center justify-between">
-          <Button variant="outline" onClick={() => navigate("/dashboard")} data-testid="back-to-dashboard-therapist">
-            ← Back to Dashboard
-          </Button>
-          <Badge className="bg-purple-600 text-white px-4 py-2" data-testid="therapist-badge">
-            <Bot className="w-4 h-4 mr-2" />
-            Professional AI Therapist
-          </Badge>
-        </div>
+      <div className="max-w-7xl mx-auto h-[calc(100vh-3rem)] flex gap-4">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <div className="mb-4 flex items-center justify-between">
+            <Button variant="outline" onClick={() => navigate("/dashboard")} data-testid="back-to-dashboard-therapist">
+              ← Back to Dashboard
+            </Button>
+            <div className="flex gap-2 items-center">
+              <Badge className="bg-purple-600 text-white px-4 py-2" data-testid="therapist-badge">
+                <Bot className="w-4 h-4 mr-2" />
+                Professional AI Therapist
+              </Badge>
+              <Button variant="outline" size="sm" onClick={startNewSession} title="Start new session">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
 
-        <Card className="flex-1 border-2 border-purple-200 flex flex-col shadow-xl" data-testid="therapist-chat-card">
-          <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <Bot className="w-7 h-7 text-purple-600" />
-              AI Therapist Chat
-            </CardTitle>
-            <CardDescription>A safe, confidential space for mental health support. This AI is trained to discuss only therapy-related topics.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0">
-            <ScrollArea className="flex-1 p-6" data-testid="therapist-messages">
-              <div className="space-y-4">
-                {messages.length === 0 && (
-                  <div className="text-center py-12" data-testid="welcome-message">
-                    <Bot className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">Welcome to Your Therapy Session</h3>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                      I'm here to provide professional mental health support. Feel free to share what's on your mind.
-                      I only discuss therapy and mental wellness topics.
-                    </p>
-                  </div>
-                )}
-                {messages.map((msg, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    data-testid={`therapist-msg-${idx}`}
-                  >
-                    <div className={`max-w-lg ${
-                      msg.role === 'user' 
-                        ? 'bg-purple-600 text-white rounded-2xl rounded-tr-sm' 
-                        : 'bg-white border-2 border-purple-200 text-gray-800 rounded-2xl rounded-tl-sm'
-                    } px-5 py-3 shadow-md`}>
-                      {msg.role === 'therapist' && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <Bot className="w-4 h-4 text-purple-600" />
-                          <span className="text-xs font-semibold text-purple-600">AI Therapist</span>
+          <Card className="flex-1 border-2 border-purple-200 flex flex-col shadow-xl" data-testid="therapist-chat-card">
+            <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Bot className="w-7 h-7 text-purple-600" />
+                    AI Mental Health Companion
+                  </CardTitle>
+                  <CardDescription>24/7 evidence-based therapy support with CBT, DBT & mindfulness techniques</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={loadInsights}>
+                    <Brain className="w-4 h-4 mr-2" />
+                    Insights
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowMoodCheckIn(true)}>
+                    <Heart className="w-4 h-4 mr-2" />
+                    Check-in
+                  </Button>
+                </div>
+              </div>
+              {moodContext && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs text-blue-700 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" />
+                    I've reviewed your recent {moodContext.recent_mood_count} mood logs to provide personalized support
+                  </p>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col p-0">
+              <ScrollArea className="flex-1 p-6" data-testid="therapist-messages">
+                <div className="space-y-4">
+                  {messages.length === 0 && (
+                    <div className="text-center py-12" data-testid="welcome-message">
+                      <Bot className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">Welcome to Your Therapy Session</h3>
+                      <p className="text-gray-600 max-w-md mx-auto mb-4">
+                        I'm your AI mental health companion, trained in CBT, DBT, and mindfulness-based therapies. 
+                        I'll provide personalized support based on your mood patterns and history.
+                      </p>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        <Badge variant="outline" className="bg-white">Crisis Detection</Badge>
+                        <Badge variant="outline" className="bg-white">Mood-Aware</Badge>
+                        <Badge variant="outline" className="bg-white">CBT/DBT Techniques</Badge>
+                      </div>
+                    </div>
+                  )}
+                  {messages.map((msg, idx) => (
+                    <div key={idx}>
+                      <div 
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                        data-testid={`therapist-msg-${idx}`}
+                      >
+                        <div className={`max-w-2xl ${
+                          msg.role === 'user' 
+                            ? 'bg-purple-600 text-white rounded-2xl rounded-tr-sm' 
+                            : 'bg-white border-2 border-purple-200 text-gray-800 rounded-2xl rounded-tl-sm'
+                        } px-5 py-3 shadow-md`}>
+                          {msg.role === 'therapist' && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <Bot className="w-4 h-4 text-purple-600" />
+                              <span className="text-xs font-semibold text-purple-600">AI Therapist</span>
+                            </div>
+                          )}
+                          <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Show therapeutic techniques after therapist message */}
+                      {msg.role === 'therapist' && msg.techniques && msg.techniques.length > 0 && (
+                        <div className="mt-2 ml-12 space-y-2">
+                          {msg.techniques.map((technique, tIdx) => (
+                            <div key={tIdx} className="p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200 max-w-xl">
+                              <div className="flex items-start gap-2">
+                                <Lightbulb className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-semibold text-purple-900 text-sm">
+                                    {technique.technique_name} 
+                                    <Badge variant="outline" className="ml-2 text-xs">{technique.technique_type}</Badge>
+                                  </h4>
+                                  <p className="text-xs text-gray-700 mt-1">{technique.description}</p>
+                                  <div className="mt-2">
+                                    <p className="text-xs font-semibold text-gray-700 mb-1">Try this:</p>
+                                    <ol className="text-xs text-gray-600 space-y-1 pl-4 list-decimal">
+                                      {technique.steps.map((step, sIdx) => (
+                                        <li key={sIdx}>{step}</li>
+                                      ))}
+                                    </ol>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )}
-                      <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start" data-testid="typing-indicator">
-                    <div className="bg-white border-2 border-purple-200 rounded-2xl rounded-tl-sm px-5 py-3 shadow-md">
-                      <div className="flex items-center gap-2">
-                        <Bot className="w-4 h-4 text-purple-600" />
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start" data-testid="typing-indicator">
+                      <div className="bg-white border-2 border-purple-200 rounded-2xl rounded-tl-sm px-5 py-3 shadow-md">
+                        <div className="flex items-center gap-2">
+                          <Bot className="w-4 h-4 text-purple-600" />
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                          </div>
+                          <span className="text-xs text-gray-500">Analyzing and generating therapeutic response...</span>
                         </div>
                       </div>
                     </div>
+                  )}
+                </div>
+              </ScrollArea>
+              <div className="p-4 border-t bg-white">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Share what's on your mind... I'm here to listen and support you."
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
+                    disabled={isLoading}
+                    className="flex-1"
+                    data-testid="therapist-input"
+                  />
+                  <Button 
+                    onClick={sendMessage} 
+                    className="bg-purple-600 hover:bg-purple-700"
+                    disabled={isLoading}
+                    data-testid="send-therapist-message"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Evidence-based therapy support • Crisis detection enabled • Your conversation is confidential
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar with Quick Info */}
+        <div className="w-80 space-y-4 hidden lg:block">
+          {suggestedTechniques.length > 0 && (
+            <Card className="border-2 border-purple-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-purple-600" />
+                  Suggested Techniques
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {suggestedTechniques.map((technique, idx) => (
+                  <div key={idx} className="p-3 bg-purple-50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-purple-900">{technique.technique_name}</h4>
+                    <Badge variant="outline" className="mt-1 text-xs">{technique.technique_type}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="border-2 border-blue-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Shield className="w-5 h-5 text-blue-600" />
+                Emergency Resources
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button 
+                onClick={() => window.open('tel:988')}
+                className="w-full bg-red-600 hover:bg-red-700"
+                size="sm"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Crisis Hotline: 988
+              </Button>
+              <Button 
+                onClick={() => window.open('sms:741741')}
+                variant="outline"
+                className="w-full"
+                size="sm"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Text: 741741
+              </Button>
+              <p className="text-xs text-gray-600 mt-2">
+                24/7 free, confidential support for people in distress
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-green-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-green-600" />
+                Session Info
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Messages:</span>
+                  <span className="font-semibold">{messages.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Session:</span>
+                  <span className="font-semibold">{sessionId ? 'Active' : 'New'}</span>
+                </div>
+                {moodContext && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mood logs analyzed:</span>
+                    <span className="font-semibold">{moodContext.recent_mood_count}</span>
                   </div>
                 )}
               </div>
-            </ScrollArea>
-            <div className="p-4 border-t bg-white">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Share what's on your mind..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
-                  disabled={isLoading}
-                  className="flex-1"
-                  data-testid="therapist-input"
-                />
-                <Button 
-                  onClick={sendMessage} 
-                  className="bg-purple-600 hover:bg-purple-700"
-                  disabled={isLoading}
-                  data-testid="send-therapist-message"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                This AI therapist only responds to mental health and therapy-related questions
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       
       {/* Crisis Resources Modal */}
