@@ -145,12 +145,12 @@ backend:
         comment: "Created comprehensive resource library endpoints: GET /api/resources (all resources with filtering by category, subcategory, content_type, search), GET /api/resources/{resource_id} (single resource with view count increment), POST /api/resources/bookmark (bookmark resource), DELETE /api/resources/bookmark/{user_id}/{resource_id} (remove bookmark), GET /api/resources/bookmarks/{user_id} (user's bookmarked resources), GET /api/resources/categories/summary (category counts). Seeded 13 educational resources covering: (1) Mental health conditions - anxiety, depression, PTSD articles, (2) CBT techniques - thought records exercise, (3) DBT techniques - distress tolerance skills, (4) Video resources - anxiety management, depression recovery, mindfulness, (5) Reading recommendations - Feeling Good (CBT book), The Body Keeps the Score (trauma), (6) Myth-busting - depression myths, therapy stigma, medication misconceptions. Auto-seeds database on first request."
   
   - task: "Music Therapy - Spotify OAuth API"
-    implemented: true
-    working: "needs_user_action"
+    implemented: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -158,6 +158,9 @@ backend:
       - working: "needs_user_action"
         agent: "main"
         comment: "REQUIRES USER ACTION: User must register the redirect URI in Spotify Developer Dashboard. Current redirect URI: https://sound-feature-cut.preview.emergentagent.com/music. Error shows 'INVALID_CLIENT: Invalid redirect URI' which means the Spotify App settings don't include this exact URL. Added better error handling in frontend to catch and display OAuth errors."
+      - working: true
+        agent: "testing"
+        comment: "✅ SUCCESSFULLY REMOVED: All Spotify OAuth endpoints have been completely removed from the backend. Tested endpoints /api/music/spotify/login, /api/music/spotify/callback, /api/music/spotify/refresh, /api/music/spotify/profile all return 404 Not Found as expected. Music therapy feature removal completed successfully."
   
   - task: "Music Therapy - Spotify Music API"
     implemented: true
