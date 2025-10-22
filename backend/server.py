@@ -1377,6 +1377,589 @@ async def detect_crisis(message: str):
         logging.error(f"Error detecting crisis: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# Meditation & Breathing Exercise Routes
+
+# Seed initial data for breathing exercises and meditation sessions
+BREATHING_EXERCISES = [
+    {
+        "id": "box_breathing",
+        "name": "Box Breathing",
+        "duration": 240,  # 4 minutes
+        "pattern": "4-4-4-4",
+        "description": "A simple yet powerful technique used by Navy SEALs to stay calm under pressure",
+        "instructions": [
+            "Breathe in through your nose for 4 seconds",
+            "Hold your breath for 4 seconds",
+            "Exhale through your mouth for 4 seconds",
+            "Hold empty for 4 seconds",
+            "Repeat the cycle"
+        ],
+        "benefits": [
+            "Reduces stress and anxiety",
+            "Improves focus and concentration",
+            "Lowers blood pressure",
+            "Promotes relaxation"
+        ]
+    },
+    {
+        "id": "breathing_478",
+        "name": "4-7-8 Breathing",
+        "duration": 180,  # 3 minutes
+        "pattern": "4-7-8",
+        "description": "A natural tranquilizer for the nervous system, perfect before sleep",
+        "instructions": [
+            "Breathe in quietly through your nose for 4 seconds",
+            "Hold your breath for 7 seconds",
+            "Exhale completely through your mouth for 8 seconds",
+            "This completes one breath cycle",
+            "Repeat 3-4 times"
+        ],
+        "benefits": [
+            "Promotes better sleep",
+            "Reduces anxiety",
+            "Manages stress responses",
+            "Calms racing thoughts"
+        ]
+    },
+    {
+        "id": "deep_belly",
+        "name": "Deep Belly Breathing",
+        "duration": 300,  # 5 minutes
+        "pattern": "slow-deep",
+        "description": "Diaphragmatic breathing to activate your body's relaxation response",
+        "instructions": [
+            "Place one hand on your chest and one on your belly",
+            "Breathe in slowly through your nose, feeling your belly rise",
+            "Your chest should remain relatively still",
+            "Exhale slowly through your mouth",
+            "Continue for 5-10 minutes"
+        ],
+        "benefits": [
+            "Activates the parasympathetic nervous system",
+            "Reduces muscle tension",
+            "Improves oxygen flow",
+            "Decreases heart rate"
+        ]
+    },
+    {
+        "id": "alternate_nostril",
+        "name": "Alternate Nostril Breathing",
+        "duration": 300,  # 5 minutes
+        "pattern": "alternate",
+        "description": "A yogic breathing technique to balance the mind and body",
+        "instructions": [
+            "Sit comfortably with your spine straight",
+            "Close your right nostril with your right thumb",
+            "Breathe in through your left nostril",
+            "Close your left nostril with your ring finger",
+            "Release your thumb and breathe out through your right nostril",
+            "Breathe in through the right nostril",
+            "Close the right nostril and breathe out through the left",
+            "This completes one cycle"
+        ],
+        "benefits": [
+            "Balances left and right brain hemispheres",
+            "Reduces stress and anxiety",
+            "Improves respiratory function",
+            "Enhances mental clarity"
+        ]
+    },
+    {
+        "id": "resonant_breathing",
+        "name": "Resonant Breathing",
+        "duration": 300,  # 5 minutes
+        "pattern": "5-5",
+        "description": "Breathe at 5 breaths per minute to achieve coherence",
+        "instructions": [
+            "Breathe in for 5 seconds",
+            "Breathe out for 5 seconds",
+            "Keep the breathing smooth and even",
+            "Continue for 5-10 minutes",
+            "Feel your body reach a state of coherence"
+        ],
+        "benefits": [
+            "Maximizes heart rate variability",
+            "Reduces stress hormones",
+            "Improves emotional regulation",
+            "Enhances overall well-being"
+        ]
+    }
+]
+
+MEDITATION_SESSIONS = [
+    {
+        "id": "stress_relief_5",
+        "title": "Quick Stress Relief",
+        "duration": 5,
+        "category": "stress_relief",
+        "description": "A brief meditation to release tension and find calm in the middle of your day",
+        "instructions": [
+            "Find a comfortable seated position",
+            "Close your eyes gently",
+            "Take 3 deep breaths, releasing tension with each exhale",
+            "Scan your body from head to toe, noticing areas of tension",
+            "With each breath, imagine tension melting away",
+            "Visualize yourself in a peaceful place",
+            "When you're ready, slowly open your eyes"
+        ],
+        "goal": "Release stress and tension quickly"
+    },
+    {
+        "id": "stress_relief_10",
+        "title": "Deep Stress Release",
+        "duration": 10,
+        "category": "stress_relief",
+        "description": "A deeper meditation to let go of stress and restore inner peace",
+        "instructions": [
+            "Settle into a comfortable position",
+            "Close your eyes and take a few natural breaths",
+            "Notice the weight of your body being supported",
+            "Begin to scan your body, releasing tension as you go",
+            "Acknowledge any stressful thoughts without judgment",
+            "Imagine stress leaving your body with each exhale",
+            "Visualize a wave of calm washing over you",
+            "Rest in this peaceful state",
+            "Gently return when you're ready"
+        ],
+        "goal": "Deep relaxation and stress relief"
+    },
+    {
+        "id": "sleep_10",
+        "title": "Peaceful Sleep Preparation",
+        "duration": 10,
+        "category": "sleep",
+        "description": "Ease into a restful state perfect for falling asleep",
+        "instructions": [
+            "Lie down in a comfortable position",
+            "Take 3 slow, deep breaths",
+            "Allow your body to feel heavy and relaxed",
+            "Release the events of the day",
+            "Imagine yourself in a safe, comfortable place",
+            "Let your breath become natural and effortless",
+            "Allow thoughts to drift by like clouds",
+            "Feel yourself sinking deeper into relaxation",
+            "Drift off whenever you're ready"
+        ],
+        "goal": "Prepare body and mind for restful sleep"
+    },
+    {
+        "id": "sleep_20",
+        "title": "Deep Sleep Meditation",
+        "duration": 20,
+        "category": "sleep",
+        "description": "A longer meditation for deep relaxation and quality sleep",
+        "instructions": [
+            "Lie comfortably with your arms by your sides",
+            "Close your eyes and take several deep breaths",
+            "Progressively relax each part of your body",
+            "Starting from your toes, move slowly upward",
+            "Release all tension, all thoughts, all worries",
+            "Imagine yourself floating on calm water",
+            "Your breathing is slow and natural",
+            "You are safe, peaceful, and ready for sleep",
+            "Let go completely and drift into sleep"
+        ],
+        "goal": "Achieve deep relaxation for quality sleep"
+    },
+    {
+        "id": "focus_5",
+        "title": "Quick Focus Boost",
+        "duration": 5,
+        "category": "focus",
+        "description": "Sharpen your concentration and mental clarity",
+        "instructions": [
+            "Sit upright with your spine straight",
+            "Close your eyes and take 3 energizing breaths",
+            "Bring your attention to your breath",
+            "Count each inhale and exhale up to 10",
+            "If your mind wanders, gently return to counting",
+            "Feel your mind becoming clearer and more focused",
+            "Open your eyes feeling alert and ready"
+        ],
+        "goal": "Enhance focus and mental clarity"
+    },
+    {
+        "id": "focus_15",
+        "title": "Deep Focus Training",
+        "duration": 15,
+        "category": "focus",
+        "description": "Train your mind for sustained concentration and productivity",
+        "instructions": [
+            "Sit in a comfortable but alert position",
+            "Set an intention for your focus practice",
+            "Begin by following your natural breath",
+            "Notice sensations of breathing in detail",
+            "When your mind wanders, note 'thinking' and return",
+            "Gradually your concentration will deepen",
+            "Feel your mental muscles strengthening",
+            "Practice patience with yourself",
+            "Return feeling mentally sharp and ready"
+        ],
+        "goal": "Build sustained concentration skills"
+    },
+    {
+        "id": "anxiety_5",
+        "title": "Anxiety SOS",
+        "duration": 5,
+        "category": "anxiety",
+        "description": "Quick relief from anxious feelings and racing thoughts",
+        "instructions": [
+            "Find a quiet space and sit or lie down",
+            "Place one hand on your heart, one on your belly",
+            "Take a slow, deep breath in through your nose",
+            "Hold for a moment, then exhale slowly",
+            "Focus on the physical sensations of breathing",
+            "Tell yourself: 'This feeling will pass'",
+            "Continue breathing slowly and deeply",
+            "Feel your nervous system calming down"
+        ],
+        "goal": "Rapid anxiety relief and grounding"
+    },
+    {
+        "id": "anxiety_10",
+        "title": "Calm Your Anxious Mind",
+        "duration": 10,
+        "category": "anxiety",
+        "description": "Soothe anxiety and find your center of calm",
+        "instructions": [
+            "Sit comfortably and close your eyes",
+            "Notice your anxious thoughts without judgment",
+            "Acknowledge: 'I feel anxious, and that's okay'",
+            "Begin taking slow, calming breaths",
+            "Imagine breathing in peace, breathing out worry",
+            "Visualize a safe, peaceful place",
+            "Feel yourself becoming grounded and stable",
+            "Know that you have the strength to handle this",
+            "Open your eyes feeling more centered"
+        ],
+        "goal": "Reduce anxiety and restore calm"
+    },
+    {
+        "id": "anxiety_15",
+        "title": "Deep Anxiety Release",
+        "duration": 15,
+        "category": "anxiety",
+        "description": "A comprehensive practice to release deep anxiety",
+        "instructions": [
+            "Find a comfortable, safe space",
+            "Begin with several grounding breaths",
+            "Scan your body for where you hold anxiety",
+            "Breathe into those areas with compassion",
+            "Acknowledge your worries without fighting them",
+            "Imagine releasing anxiety with each exhale",
+            "Practice self-compassion and understanding",
+            "Visualize yourself calm and capable",
+            "Build a sense of inner safety and peace",
+            "Return feeling lighter and more grounded"
+        ],
+        "goal": "Deep release of anxiety and worry"
+    },
+    {
+        "id": "morning_energy",
+        "title": "Morning Energy Meditation",
+        "duration": 10,
+        "category": "focus",
+        "description": "Start your day with clarity and positive energy",
+        "instructions": [
+            "Sit upright in a comfortable position",
+            "Take 3 deep, energizing breaths",
+            "Set a positive intention for your day",
+            "Visualize your day going well",
+            "Feel gratitude for the new day",
+            "Imagine energy flowing through your body",
+            "See yourself handling challenges with ease",
+            "Open your eyes feeling energized and ready"
+        ],
+        "goal": "Energize and prepare for a positive day"
+    }
+]
+
+@api_router.get("/meditation/exercises")
+async def get_breathing_exercises():
+    """Get all available breathing exercises"""
+    try:
+        return {"exercises": BREATHING_EXERCISES}
+    except Exception as e:
+        logging.error(f"Error getting breathing exercises: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/meditation/sessions")
+async def get_meditation_sessions(category: Optional[str] = None):
+    """Get all meditation sessions, optionally filtered by category"""
+    try:
+        sessions = MEDITATION_SESSIONS
+        if category:
+            sessions = [s for s in sessions if s['category'] == category]
+        return {"sessions": sessions}
+    except Exception as e:
+        logging.error(f"Error getting meditation sessions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/meditation/start", response_model=MeditationSession)
+async def start_meditation_session(session_data: MeditationSessionStart):
+    """Start a new meditation or breathing session"""
+    try:
+        session = MeditationSession(
+            user_id=session_data.user_id,
+            session_type=session_data.session_type,
+            content_id=session_data.content_id,
+            duration=session_data.duration,
+            completed=False
+        )
+        
+        doc = session.model_dump()
+        doc['timestamp'] = doc['timestamp'].isoformat()
+        await db.meditation_sessions.insert_one(doc)
+        
+        return session
+    except Exception as e:
+        logging.error(f"Error starting meditation session: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/meditation/complete")
+async def complete_meditation_session(completion_data: MeditationSessionComplete):
+    """Mark a meditation session as complete and award wellness stars"""
+    try:
+        # Update session to completed
+        result = await db.meditation_sessions.update_one(
+            {"id": completion_data.session_id},
+            {"$set": {"completed": True}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Get session to get user_id
+        session = await db.meditation_sessions.find_one({"id": completion_data.session_id}, {"_id": 0})
+        
+        if session:
+            # Award wellness stars
+            await db.user_profiles.update_one(
+                {"user_id": session['user_id']},
+                {"$inc": {"wellness_stars": 2}}  # Award 2 stars for completing a session
+            )
+        
+        return {"message": "Session completed successfully", "stars_earned": 2}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error completing meditation session: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/meditation/progress/{user_id}")
+async def get_meditation_progress(user_id: str):
+    """Get user's meditation progress and statistics"""
+    try:
+        # Get all completed sessions
+        sessions = await db.meditation_sessions.find(
+            {"user_id": user_id, "completed": True},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        if not sessions:
+            return {
+                "total_sessions": 0,
+                "total_minutes": 0,
+                "breathing_sessions": 0,
+                "meditation_sessions": 0,
+                "favorite_category": None,
+                "current_streak": 0,
+                "recent_sessions": []
+            }
+        
+        # Parse timestamps
+        for session in sessions:
+            if isinstance(session['timestamp'], str):
+                session['timestamp'] = datetime.fromisoformat(session['timestamp'])
+        
+        # Sort by timestamp
+        sessions.sort(key=lambda x: x['timestamp'])
+        
+        # Calculate statistics
+        total_sessions = len(sessions)
+        breathing_sessions = len([s for s in sessions if s['session_type'] == 'breathing'])
+        meditation_sessions = len([s for s in sessions if s['session_type'] == 'meditation'])
+        
+        # Calculate total minutes
+        total_seconds = sum(s['duration'] for s in sessions)
+        total_minutes = total_seconds // 60
+        
+        # Find favorite category
+        meditation_only = [s for s in sessions if s['session_type'] == 'meditation']
+        if meditation_only:
+            # Get content_id categories
+            categories = []
+            for s in meditation_only:
+                content = next((m for m in MEDITATION_SESSIONS if m['id'] == s['content_id']), None)
+                if content:
+                    categories.append(content['category'])
+            
+            if categories:
+                from collections import Counter
+                category_counts = Counter(categories)
+                favorite_category = category_counts.most_common(1)[0][0]
+            else:
+                favorite_category = None
+        else:
+            favorite_category = None
+        
+        # Calculate streak (consecutive days)
+        dates_practiced = sorted(set(s['timestamp'].date() for s in sessions))
+        current_streak = 0
+        today = datetime.now(timezone.utc).date()
+        
+        if dates_practiced:
+            if dates_practiced[-1] == today or dates_practiced[-1] == today - timedelta(days=1):
+                current_streak = 1
+                for i in range(len(dates_practiced) - 2, -1, -1):
+                    if dates_practiced[i] == dates_practiced[i + 1] - timedelta(days=1):
+                        current_streak += 1
+                    else:
+                        break
+        
+        # Recent sessions (last 10)
+        recent_sessions = []
+        for s in sessions[-10:]:
+            content = None
+            if s['session_type'] == 'breathing':
+                content = next((e for e in BREATHING_EXERCISES if e['id'] == s['content_id']), None)
+            else:
+                content = next((m for m in MEDITATION_SESSIONS if m['id'] == s['content_id']), None)
+            
+            recent_sessions.append({
+                "id": s['id'],
+                "type": s['session_type'],
+                "title": content['name'] if s['session_type'] == 'breathing' else content['title'] if content else "Unknown",
+                "duration": s['duration'],
+                "timestamp": s['timestamp'].isoformat()
+            })
+        
+        return {
+            "total_sessions": total_sessions,
+            "total_minutes": total_minutes,
+            "breathing_sessions": breathing_sessions,
+            "meditation_sessions": meditation_sessions,
+            "favorite_category": favorite_category,
+            "current_streak": current_streak,
+            "recent_sessions": list(reversed(recent_sessions))  # Most recent first
+        }
+    except Exception as e:
+        logging.error(f"Error getting meditation progress: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/meditation/recommendations/{user_id}")
+async def get_meditation_recommendations(user_id: str):
+    """Get smart recommendations based on user's recent mood logs"""
+    try:
+        # Get recent mood logs (last 7 days)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        recent_logs = await db.mood_logs.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(20).to_list(20)
+        
+        if not recent_logs:
+            # Default recommendations for new users
+            return {
+                "recommendations": [
+                    {
+                        "type": "breathing",
+                        "content": BREATHING_EXERCISES[0],  # Box Breathing
+                        "reason": "Start with this foundational breathing technique"
+                    },
+                    {
+                        "type": "meditation",
+                        "content": MEDITATION_SESSIONS[0],  # Quick Stress Relief
+                        "reason": "A perfect introduction to meditation practice"
+                    }
+                ]
+            }
+        
+        # Analyze mood text for keywords
+        all_mood_text = " ".join([log.get('mood_text', '').lower() for log in recent_logs])
+        
+        recommendations = []
+        
+        # Check for stress-related keywords
+        stress_keywords = ['stress', 'stressed', 'overwhelm', 'pressure', 'busy', 'anxious', 'worry']
+        if any(keyword in all_mood_text for keyword in stress_keywords):
+            recommendations.append({
+                "type": "breathing",
+                "content": BREATHING_EXERCISES[0],  # Box Breathing
+                "reason": "Your recent logs show stress - try this calming breathing exercise"
+            })
+            recommendations.append({
+                "type": "meditation",
+                "content": next(m for m in MEDITATION_SESSIONS if m['id'] == 'stress_relief_10'),
+                "reason": "Deep stress release meditation based on your recent mood"
+            })
+        
+        # Check for anxiety keywords
+        anxiety_keywords = ['anxious', 'anxiety', 'nervous', 'panic', 'worried', 'fear']
+        if any(keyword in all_mood_text for keyword in anxiety_keywords):
+            recommendations.append({
+                "type": "breathing",
+                "content": BREATHING_EXERCISES[1],  # 4-7-8 Breathing
+                "reason": "This breathing technique is excellent for calming anxiety"
+            })
+            recommendations.append({
+                "type": "meditation",
+                "content": next(m for m in MEDITATION_SESSIONS if m['id'] == 'anxiety_10'),
+                "reason": "Recommended to help soothe your anxious mind"
+            })
+        
+        # Check for sleep-related keywords
+        sleep_keywords = ['tired', 'exhaust', 'sleep', 'insomnia', 'can\'t sleep', 'restless']
+        if any(keyword in all_mood_text for keyword in sleep_keywords):
+            recommendations.append({
+                "type": "breathing",
+                "content": BREATHING_EXERCISES[1],  # 4-7-8 Breathing (good for sleep)
+                "reason": "This technique helps prepare your body for restful sleep"
+            })
+            recommendations.append({
+                "type": "meditation",
+                "content": next(m for m in MEDITATION_SESSIONS if m['id'] == 'sleep_10'),
+                "reason": "Perfect for easing into a peaceful night's sleep"
+            })
+        
+        # Check for focus-related keywords
+        focus_keywords = ['distracted', 'unfocused', 'concentrate', 'focus', 'scattered', 'procrastinat']
+        if any(keyword in all_mood_text for keyword in focus_keywords):
+            recommendations.append({
+                "type": "breathing",
+                "content": BREATHING_EXERCISES[4],  # Resonant Breathing
+                "reason": "Enhance your focus and mental clarity with this technique"
+            })
+            recommendations.append({
+                "type": "meditation",
+                "content": next(m for m in MEDITATION_SESSIONS if m['id'] == 'focus_15'),
+                "reason": "Train your mind for better concentration"
+            })
+        
+        # If no specific keywords found, provide general recommendations
+        if not recommendations:
+            recommendations = [
+                {
+                    "type": "breathing",
+                    "content": BREATHING_EXERCISES[2],  # Deep Belly Breathing
+                    "reason": "A great all-around practice for daily wellness"
+                },
+                {
+                    "type": "meditation",
+                    "content": MEDITATION_SESSIONS[9],  # Morning Energy
+                    "reason": "Start your day with positive energy"
+                }
+            ]
+        
+        # Limit to top 3 recommendations
+        return {"recommendations": recommendations[:3]}
+        
+    except Exception as e:
+        logging.error(f"Error getting meditation recommendations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Socket.IO events
 @sio.event
 async def connect(sid, environ):
