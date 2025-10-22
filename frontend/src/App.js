@@ -215,6 +215,22 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           </Link>
+
+          <Link to="/resources" className="block" data-testid="resources-card">
+            <Card className="h-full border-2 hover:border-orange-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-orange-100 rounded-full">
+                    <BookOpen className="w-8 h-8 text-orange-600" />
+                  </div>
+                  <CardTitle className="text-xl">Resource Library</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  Explore educational articles, videos, and exercises on mental health topics and coping strategies.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Card className="mt-6 border-2" data-testid="profile-summary">
