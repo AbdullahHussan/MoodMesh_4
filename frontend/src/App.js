@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot, TrendingUp, Trophy, Shield } from "lucide-react";
+import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot, TrendingUp, Trophy, Shield, Phone } from "lucide-react";
 import Communities from "@/pages/Communities";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
