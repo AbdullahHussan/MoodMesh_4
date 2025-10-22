@@ -406,6 +406,12 @@ const AITherapist = () => {
 
       const therapistMsg = { role: 'therapist', content: response.data.therapist_response };
       setMessages(prev => [...prev, therapistMsg]);
+      
+      // Check if crisis was detected
+      if (response.data.crisis_detected) {
+        setCrisisSeverity(response.data.crisis_severity);
+        setShowCrisisModal(true);
+      }
     } catch (error) {
       toast.error("Failed to get response from therapist");
       setMessages(prev => [...prev, { 
