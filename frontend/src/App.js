@@ -232,6 +232,22 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           </Link>
+
+          <Link to="/music" className="block" data-testid="music-therapy-card">
+            <Card className="h-full border-2 hover:border-pink-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-pink-50 to-purple-50">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-pink-100 rounded-full">
+                    <Music className="w-8 h-8 text-pink-600" />
+                  </div>
+                  <CardTitle className="text-xl">Music & Sound Therapy 🎵</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  Discover mood-based playlists, nature sounds, white noise, binaural beats, and audio journaling with Spotify integration.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Card className="mt-6 border-2" data-testid="profile-summary">
