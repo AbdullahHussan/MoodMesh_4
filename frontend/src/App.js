@@ -711,6 +711,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mood-log" element={<MoodLogPage />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/achievements" element={<Achievements />} />
           <Route path="/ai-therapist" element={<AITherapist />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/community/:communityId" element={<CommunityRoom />} />
