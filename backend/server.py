@@ -950,12 +950,23 @@ async def get_chat_messages(room_id: str):
 @api_router.post("/therapist/chat", response_model=TherapistChatResponse)
 async def therapist_chat(chat_input: TherapistChatMessage):
     try:
-        # Check for crisis keywords first
+        # Get or create session
+        session_id = chat_input.session_id
+        if not session_id:
+            # Create new session
+            new_session = TherapySession(user_id=chat_input.user_id)
+            session_id = new_session.session_id
+            session_doc = new_session.model_dump()
+            session_doc['session_start'] = session_doc['session_start'].isoformat()
+            await db.therapy_sessions.insert_one(session_doc)
+        
+        # Enhanced crisis detection with more patterns
         crisis_keywords = [
             'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die', 
             'self-harm', 'hurt myself', 'cut myself', 'harm myself', 
             'no reason to live', 'better off dead', "can't go on", 
-            'end it all', 'take my life', 'overdose'
+            'end it all', 'take my life', 'overdose', 'worthless', 'hopeless',
+            'nothing matters', 'give up', 'can\'t take it anymore', 'not worth living'
         ]
         
         message_lower = chat_input.message.lower()
@@ -964,9 +975,9 @@ async def therapist_chat(chat_input: TherapistChatMessage):
         crisis_severity = None
         
         if crisis_detected:
-            # Determine severity
-            high_severity_keywords = ['kill myself', 'end my life', 'suicide', 'suicidal', 'take my life', 'overdose']
-            medium_severity_keywords = ['want to die', 'better off dead', 'no reason to live', "can't go on"]
+            # Determine severity with enhanced detection
+            high_severity_keywords = ['kill myself', 'end my life', 'suicide', 'suicidal', 'take my life', 'overdose', 'end it all']
+            medium_severity_keywords = ['want to die', 'better off dead', 'no reason to live', "can't go on", "can't take it anymore", 'not worth living']
             
             if any(keyword in message_lower for keyword in high_severity_keywords):
                 crisis_severity = "high"
@@ -975,63 +986,162 @@ async def therapist_chat(chat_input: TherapistChatMessage):
             else:
                 crisis_severity = "low"
         
-        # System prompt to ensure it acts as a professional therapist
-        system_instruction = """You are a professional, licensed therapist specializing in mental health support. 
-        
-STRICT GUIDELINES:
-1. ONLY respond to mental health, emotional wellness, therapy, and psychology-related questions
-2. If the user asks about anything unrelated (politics, sports, coding, general knowledge, etc.), politely redirect them back to mental health topics
-3. Use empathetic, warm, and professional language
-4. Provide evidence-based therapeutic techniques when appropriate
-5. Acknowledge feelings and validate emotions
-6. Ask clarifying questions to understand the user better
-7. Never diagnose conditions - only provide support and coping strategies
-8. If a question is about serious self-harm or emergency, acknowledge their pain, ask gentle follow-up questions to understand their current state, and the system will show crisis resources
-
-Response format:
-- Start with empathy and validation
-- Provide therapeutic insights
-- Ask clarifying questions when appropriate
-- Keep responses conversational (3-4 sentences)
-
-Remember: You are ONLY a mental health therapist. Politely decline any non-therapy topics."""
-
-        # Get conversation history for context
-        history = await db.therapist_chats.find(
+        # Get user's mood patterns and history
+        mood_logs = await db.mood_logs.find(
             {"user_id": chat_input.user_id}
-        ).sort("timestamp", -1).limit(5).to_list(5)
+        ).sort("timestamp", -1).limit(10).to_list(10)
+        
+        mood_context = None
+        if mood_logs:
+            recent_moods = [log.get('mood_text', '') for log in mood_logs[:5]]
+            mood_context = {
+                "recent_mood_count": len(mood_logs),
+                "recent_moods": recent_moods[:3],
+                "patterns": "Recent mood patterns available for context"
+            }
+        
+        # Get conversation history (increased from 5 to 10 for better context)
+        history = await db.therapist_chats.find(
+            {"user_id": chat_input.user_id, "session_id": session_id}
+        ).sort("timestamp", -1).limit(10).to_list(10)
         
         # Build conversation context
         conversation_context = ""
         if history:
-            conversation_context = "\n\nRecent conversation history:\n"
+            conversation_context = "\n\n=== SESSION CONVERSATION HISTORY ===\n"
             for chat in reversed(history):
                 conversation_context += f"User: {chat['user_message']}\nTherapist: {chat['therapist_response']}\n\n"
         
-        # Combine system instruction with context
+        # Build mood context for AI
+        mood_pattern_context = ""
+        if mood_context:
+            mood_pattern_context = f"\n\n=== USER'S RECENT MOOD PATTERNS ===\nThe user has logged {mood_context['recent_mood_count']} moods recently. Recent moods include: {', '.join(mood_context['recent_moods'])}.\nUse this context to provide personalized support.\n"
+        
+        # Enhanced system prompt with CBT/DBT techniques
+        system_instruction = """You are an advanced AI mental health companion and professional therapist specializing in evidence-based therapeutic approaches including CBT (Cognitive Behavioral Therapy), DBT (Dialectical Behavior Therapy), and mindfulness-based interventions.
+
+CORE COMPETENCIES:
+1. ONLY respond to mental health, emotional wellness, therapy, and psychology-related questions
+2. Provide contextual, personalized responses based on user's mood patterns and conversation history
+3. Integrate evidence-based therapeutic techniques naturally into conversations
+4. Use empathetic, warm, and professional language with active listening
+5. Validate emotions while gently challenging unhelpful thought patterns
+6. Recognize and respond to crisis situations with immediate safety support
+7. Never diagnose conditions - provide support, coping strategies, and professional referrals when needed
+
+THERAPEUTIC TECHNIQUES TO INTEGRATE:
+- CBT: Identify cognitive distortions, thought records, behavioral activation, cognitive restructuring
+- DBT: Distress tolerance skills, emotion regulation, mindfulness, interpersonal effectiveness
+- Mindfulness: Grounding exercises, present-moment awareness, body scans
+- Positive Psychology: Gratitude practices, strength identification, values clarification
+
+RESPONSE GUIDELINES:
+- Start with empathy and validation of their experience
+- Reference their mood patterns when relevant to show continuity of care
+- Suggest specific techniques when appropriate (e.g., "This sounds like a situation where the CBT technique of 'thought challenging' might help")
+- Ask thoughtful clarifying questions to deepen understanding
+- Keep responses conversational but substantive (4-6 sentences)
+- If crisis language detected, respond with immediate compassion and the system will show emergency resources
+
+CONVERSATION MEMORY:
+- Remember topics discussed in this session
+- Build on previous insights and techniques shared
+- Track user's progress and celebrate small wins
+- Maintain therapeutic continuity across the conversation
+
+Remember: You are a 24/7 mental health companion providing evidence-based support. You ONLY discuss therapy and mental wellness topics."""
+
+        # Combine all context
         full_prompt = f"""{system_instruction}
 
-{conversation_context}
-Current user message: {chat_input.message}
+{mood_pattern_context}
 
-Provide a therapeutic response:"""
+{conversation_context}
+
+=== CURRENT USER MESSAGE ===
+{chat_input.message}
+
+Provide a therapeutic response that integrates their mood patterns and conversation history:"""
         
+        # Generate AI response
         response = model.generate_content(full_prompt)
         therapist_response = response.text.strip()
         
-        # Create chat record
+        # Analyze message for technique recommendations
+        suggested_techniques = []
+        
+        # Detect if CBT techniques would be helpful
+        cbt_triggers = ['thinking', 'thoughts', 'believe', 'always', 'never', 'should', 'must', 'catastroph', 'worst']
+        if any(trigger in message_lower for trigger in cbt_triggers):
+            suggested_techniques.append(TherapeuticTechnique(
+                technique_name="Cognitive Restructuring",
+                technique_type="CBT",
+                description="Challenge and reframe unhelpful thought patterns",
+                steps=[
+                    "Identify the automatic negative thought",
+                    "Examine the evidence for and against this thought",
+                    "Consider alternative, more balanced perspectives",
+                    "Create a more realistic, helpful thought",
+                    "Notice how this changes your emotional response"
+                ]
+            ))
+        
+        # Detect if DBT techniques would be helpful
+        dbt_triggers = ['overwhelm', 'intense', 'can\'t handle', 'too much', 'out of control', 'impulsive']
+        if any(trigger in message_lower for trigger in dbt_triggers):
+            suggested_techniques.append(TherapeuticTechnique(
+                technique_name="TIPP Skills (Distress Tolerance)",
+                technique_type="DBT",
+                description="Quick techniques to manage intense emotions",
+                steps=[
+                    "Temperature: Use cold water on face to activate dive reflex",
+                    "Intense exercise: Do jumping jacks or run in place for 60 seconds",
+                    "Paced breathing: Breathe in for 4, hold for 4, out for 6",
+                    "Paired muscle relaxation: Tense then release muscle groups"
+                ]
+            ))
+        
+        # Detect if mindfulness would be helpful
+        mindfulness_triggers = ['anxious', 'worried', 'racing', 'stressed', 'panic', 'fear']
+        if any(trigger in message_lower for trigger in mindfulness_triggers):
+            suggested_techniques.append(TherapeuticTechnique(
+                technique_name="5-4-3-2-1 Grounding",
+                technique_type="Mindfulness",
+                description="Ground yourself in the present moment using your senses",
+                steps=[
+                    "Name 5 things you can see around you",
+                    "Name 4 things you can physically feel (texture, temperature)",
+                    "Name 3 things you can hear right now",
+                    "Name 2 things you can smell",
+                    "Name 1 thing you can taste"
+                ]
+            ))
+        
+        # Create chat record with enhanced data
         chat_record = TherapistChatResponse(
             user_id=chat_input.user_id,
+            session_id=session_id,
             user_message=chat_input.message,
             therapist_response=therapist_response,
             crisis_detected=crisis_detected,
-            crisis_severity=crisis_severity
+            crisis_severity=crisis_severity,
+            suggested_techniques=suggested_techniques,
+            mood_context=mood_context
         )
         
         # Save to MongoDB
         doc = chat_record.model_dump()
         doc['timestamp'] = doc['timestamp'].isoformat()
         await db.therapist_chats.insert_one(doc)
+        
+        # Update session message count and topics
+        await db.therapy_sessions.update_one(
+            {"session_id": session_id},
+            {
+                "$inc": {"message_count": 1},
+                "$set": {"last_activity": datetime.now(timezone.utc).isoformat()}
+            }
+        )
         
         return chat_record
     except Exception as e:
