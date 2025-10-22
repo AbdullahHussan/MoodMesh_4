@@ -16,29 +16,12 @@ import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot }
 import Communities from "@/pages/Communities";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import HomePage from "@/pages/HomePage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const socket = io(BACKEND_URL);
-
-// Home Page
-const Home = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("moodmesh_user");
-    const storedToken = localStorage.getItem("moodmesh_token");
-    
-    if (storedUser && storedToken) {
-      navigate("/dashboard");
-    } else {
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  return null; // Redirect handled in useEffect
-};
 
 // Dashboard
 const Dashboard = () => {
