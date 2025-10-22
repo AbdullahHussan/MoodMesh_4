@@ -181,6 +181,22 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           </Link>
+
+          <Link to="/crisis-support" className="block" data-testid="crisis-support-card">
+            <Card className="h-full border-2 border-purple-300 hover:border-purple-500 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-purple-50 to-blue-50">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Shield className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <CardTitle className="text-xl">Crisis Support</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  Access emergency hotlines, create your safety plan, and manage crisis resources. You're not alone.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Card className="mt-6 border-2" data-testid="profile-summary">
