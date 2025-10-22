@@ -2945,53 +2945,8 @@ async def leave_room(sid, data):
     await sio.emit('user_left', {'username': username, 'message': f"{username} left the community"}, room=room_id)
 
 
-# ==================== Music Therapy Models ====================
 
-class SpotifyAuthResponse(BaseModel):
-    auth_url: str
 
-class SpotifyTokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    expires_in: int
-    
-class SpotifyProfile(BaseModel):
-    id: str
-    display_name: str
-    product: str  # "free" or "premium"
-    is_premium: bool
-
-class BuiltInAudio(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    title: str
-    description: str
-    category: str  # "nature", "white_noise", "binaural_beats"
-    duration: int  # in seconds
-    audio_url: str
-    tags: List[str] = []
-    
-class AudioJournal(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    mood: str
-    journal_text: str
-    voice_recording_url: Optional[str] = None
-    music_played: Optional[str] = None  # Track/sound played during journaling
-    music_source: Optional[str] = None  # "spotify" or "builtin"
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class MusicHistory(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    track_name: str
-    artist: str
-    source: str  # "spotify" or "builtin"
-    mood_context: Optional[str] = None
-    duration_played: int  # in seconds
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Built-in Audio Library (seeded on first request)
 BUILTIN_AUDIO_LIBRARY = [
