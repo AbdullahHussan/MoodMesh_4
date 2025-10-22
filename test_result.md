@@ -316,14 +316,15 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
-  run_ui: true
+  test_sequence: 3
+  run_ui: false
 
 test_plan:
   current_focus:
-    - "Resource Library API"
-    - "Resource Library Page"
-    - "Resource Library Navigation Card"
+    - "Music Therapy - Spotify OAuth API"
+    - "Music Therapy - Built-in Audio Library API"
+    - "Music Therapy - AI Recommendations API"
+    - "Music Therapy - Audio Journaling API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
