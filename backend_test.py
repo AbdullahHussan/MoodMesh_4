@@ -2014,10 +2014,16 @@ if __name__ == "__main__":
     resource_success = resource_tester.run_all_tests()
     
     print("\n" + "=" * 60)
+    
+    # Run Music Therapy Tests
+    music_tester = MoodMeshMusicTherapyTest()
+    music_success = music_tester.run_all_tests()
+    
+    print("\n" + "=" * 60)
     print("🏁 FINAL RESULTS")
     print("=" * 60)
     
-    if analytics_success and meditation_success and resource_success:
+    if analytics_success and meditation_success and resource_success and music_success:
         print("🎉 ALL TESTS PASSED! Backend is working correctly.")
         exit(0)
     else:
@@ -2027,4 +2033,6 @@ if __name__ == "__main__":
             print("❌ Meditation tests failed")
         if not resource_success:
             print("❌ Resource Library tests failed")
+        if not music_success:
+            print("❌ Music Therapy tests failed")
         exit(1)
