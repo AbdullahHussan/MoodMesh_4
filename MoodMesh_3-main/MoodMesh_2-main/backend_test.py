@@ -5,7 +5,7 @@ from datetime import datetime
 import uuid
 
 class MoodMeshAPITester:
-    def __init__(self, base_url="https://mood-fitness-connect.preview.emergentagent.com"):
+    def __init__(self, base_url="https://mood-beats-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
