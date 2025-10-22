@@ -194,6 +194,9 @@ backend:
       - working: true
         agent: "main"
         comment: "FIXED: Replaced all broken Pixabay audio URLs with working Archive.org URLs. All 12 audio files now accessible. Added proper error handling in frontend with .load() and Promise handling for play(). Added crossOrigin support for CORS."
+      - working: true
+        agent: "testing"
+        comment: "✅ SUCCESSFULLY REMOVED: Built-in audio library endpoint /api/music/library has been completely removed from the backend. Endpoint now returns 404 Not Found as expected. Music therapy feature removal completed successfully."
   
   - task: "Music Therapy - AI Recommendations API"
     implemented: true
