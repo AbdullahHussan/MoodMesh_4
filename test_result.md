@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build Mood Analytics & Insights Dashboard feature that shows mood patterns, trends, time analysis, common emotions, and AI-generated insights"
+user_problem_statement: "Build Mood Analytics & Insights Dashboard feature that shows mood patterns, trends, time analysis, common emotions, and AI-generated insights. Add Guided Meditation & Breathing Exercises feature with audio-guided sessions, breathing exercises, meditation sessions, progress tracking, and smart recommendations based on mood."
 
 backend:
   - task: "Analytics API endpoint"
