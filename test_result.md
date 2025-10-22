@@ -116,6 +116,18 @@ backend:
       - working: true
         agent: "main"
         comment: "Created /api/mood/analytics/{user_id} endpoint that returns total logs, mood trends, hourly distribution, common emotions, streaks, and AI insights"
+  
+  - task: "Meditation & Breathing Exercises API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created meditation endpoints: /api/meditation/exercises (breathing exercises), /api/meditation/sessions (meditation content), /api/meditation/start, /api/meditation/complete, /api/meditation/progress/{user_id}, /api/meditation/recommendations/{user_id}. Includes 5 breathing exercises and 10 meditation sessions with smart recommendations based on mood logs."
 
 frontend:
   - task: "Analytics Dashboard Page"
