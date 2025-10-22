@@ -214,16 +214,19 @@ backend:
         comment: "✅ SUCCESSFULLY REMOVED: AI music recommendations endpoint /api/music/recommendations/{user_id} has been completely removed from the backend. Endpoint now returns 404 Not Found as expected. Music therapy feature removal completed successfully."
   
   - task: "Music Therapy - Audio Journaling API"
-    implemented: true
-    working: "NA"
+    implemented: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created audio journaling endpoints: POST /api/music/journal/create (creates journal with text, optional voice recording URL, mood, and music context - awards 3 wellness stars), GET /api/music/journal/{user_id} (gets user's journals), GET /api/music/journal/entry/{journal_id} (gets specific entry)."
+      - working: true
+        agent: "testing"
+        comment: "✅ SUCCESSFULLY REMOVED: All audio journaling endpoints have been completely removed from the backend. Tested endpoints /api/music/journal/create, /api/music/journal/{user_id}, /api/music/journal/entry/{journal_id} all return 404 Not Found as expected. Music therapy feature removal completed successfully."
   
   - task: "Music Therapy - Listening History API"
     implemented: true
