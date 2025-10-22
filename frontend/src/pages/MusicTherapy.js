@@ -190,12 +190,21 @@ const MusicTherapy = () => {
         setIsPlaying(false);
       } else {
         audioRef.current.src = audio.audio_url;
-        audioRef.current.play();
-        setCurrentAudio(audio);
-        setIsPlaying(true);
+        audioRef.current.load(); // Ensure the new source is loaded
         
-        // Save to history
-        saveToHistory(audio.title, "Built-in Audio", "builtin", audio.duration);
+        audioRef.current.play()
+          .then(() => {
+            setCurrentAudio(audio);
+            setIsPlaying(true);
+            
+            // Save to history
+            saveToHistory(audio.title, "Built-in Audio", "builtin", audio.duration);
+          })
+          .catch((error) => {
+            console.error("Playback failed:", error);
+            toast.error("Unable to play this audio. It may not be available.");
+            setIsPlaying(false);
+          });
       }
     }
   };
