@@ -96,7 +96,13 @@ const MusicTherapy = () => {
     // Setup audio element
     if (!audioRef.current) {
       audioRef.current = new Audio();
+      audioRef.current.crossOrigin = "anonymous";
       audioRef.current.addEventListener("ended", () => setIsPlaying(false));
+      audioRef.current.addEventListener("error", (e) => {
+        console.error("Audio playback error:", e);
+        setIsPlaying(false);
+        toast.error("Failed to play audio. Please try another track.");
+      });
     }
   }, []);
 
