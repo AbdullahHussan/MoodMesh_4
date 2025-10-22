@@ -229,16 +229,19 @@ backend:
         comment: "✅ SUCCESSFULLY REMOVED: All audio journaling endpoints have been completely removed from the backend. Tested endpoints /api/music/journal/create, /api/music/journal/{user_id}, /api/music/journal/entry/{journal_id} all return 404 Not Found as expected. Music therapy feature removal completed successfully."
   
   - task: "Music Therapy - Listening History API"
-    implemented: true
-    working: "NA"
+    implemented: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created music history tracking endpoints: POST /api/music/history/save (saves what user listened to with track name, artist, source, mood context, duration), GET /api/music/history/{user_id} (retrieves listening history)."
+      - working: true
+        agent: "testing"
+        comment: "✅ SUCCESSFULLY REMOVED: All music history tracking endpoints have been completely removed from the backend. Tested endpoints /api/music/history/save, /api/music/history/{user_id} all return 404 Not Found as expected. Music therapy feature removal completed successfully."
 
 frontend:
   - task: "Analytics Dashboard Page"
