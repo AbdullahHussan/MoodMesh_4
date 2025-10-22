@@ -718,10 +718,22 @@ const CommunityRoom = () => {
   );
 };
 
+const AppWithCrisisButton = () => {
+  const location = window.location;
+  const showCrisisButton = !['/login', '/register', '/'].includes(location.pathname);
+  
+  return (
+    <>
+      {showCrisisButton && <CrisisButton />}
+    </>
+  );
+};
+
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
+        <AppWithCrisisButton />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
