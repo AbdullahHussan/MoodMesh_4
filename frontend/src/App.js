@@ -362,6 +362,8 @@ const AITherapist = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [crisisSeverity, setCrisisSeverity] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("moodmesh_user");
