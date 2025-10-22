@@ -130,6 +130,22 @@ const Dashboard = () => {
             </Card>
           </Link>
 
+          <Link to="/meditation" className="block" data-testid="meditation-card">
+            <Card className="h-full border-2 hover:border-indigo-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-indigo-100 rounded-full">
+                    <Wind className="w-8 h-8 text-indigo-600" />
+                  </div>
+                  <CardTitle className="text-xl">Meditation & Breathing</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  Practice guided meditation and breathing exercises for stress relief and mindfulness.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
           <Link to="/achievements" className="block" data-testid="achievements-card">
             <Card className="h-full border-2 hover:border-yellow-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1 relative overflow-hidden">
               {achievementCount > 0 && (
