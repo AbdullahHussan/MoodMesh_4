@@ -1145,6 +1145,169 @@ async def leave_community(community_id: str, user_id: str):
         logging.error(f"Error leaving community: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Crisis Support Routes
+@api_router.post("/crisis/safety-plan", response_model=SafetyPlan)
+async def create_or_update_safety_plan(plan_data: SafetyPlanCreate):
+    try:
+        # Check if safety plan already exists
+        existing_plan = await db.safety_plans.find_one({"user_id": plan_data.user_id}, {"_id": 0})
+        
+        if existing_plan:
+            # Update existing plan
+            update_data = plan_data.model_dump()
+            update_data['updated_at'] = datetime.now(timezone.utc)
+            
+            await db.safety_plans.update_one(
+                {"user_id": plan_data.user_id},
+                {"$set": update_data}
+            )
+            
+            updated_plan = await db.safety_plans.find_one({"user_id": plan_data.user_id}, {"_id": 0})
+            if isinstance(updated_plan['created_at'], str):
+                updated_plan['created_at'] = datetime.fromisoformat(updated_plan['created_at'])
+            if isinstance(updated_plan['updated_at'], str):
+                updated_plan['updated_at'] = datetime.fromisoformat(updated_plan['updated_at'])
+            
+            return SafetyPlan(**updated_plan)
+        else:
+            # Create new safety plan
+            safety_plan = SafetyPlan(**plan_data.model_dump())
+            doc = safety_plan.model_dump()
+            doc['created_at'] = doc['created_at'].isoformat()
+            doc['updated_at'] = doc['updated_at'].isoformat()
+            
+            await db.safety_plans.insert_one(doc)
+            return safety_plan
+    except Exception as e:
+        logging.error(f"Error creating/updating safety plan: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/crisis/safety-plan/{user_id}", response_model=Optional[SafetyPlan])
+async def get_safety_plan(user_id: str):
+    try:
+        plan = await db.safety_plans.find_one({"user_id": user_id}, {"_id": 0})
+        if not plan:
+            return None
+        
+        if isinstance(plan['created_at'], str):
+            plan['created_at'] = datetime.fromisoformat(plan['created_at'])
+        if isinstance(plan['updated_at'], str):
+            plan['updated_at'] = datetime.fromisoformat(plan['updated_at'])
+        
+        return SafetyPlan(**plan)
+    except Exception as e:
+        logging.error(f"Error getting safety plan: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/crisis/emergency-contacts", response_model=EmergencyContact)
+async def create_emergency_contact(contact_data: EmergencyContactCreate):
+    try:
+        contact = EmergencyContact(**contact_data.model_dump())
+        doc = contact.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        
+        await db.emergency_contacts.insert_one(doc)
+        return contact
+    except Exception as e:
+        logging.error(f"Error creating emergency contact: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/crisis/emergency-contacts/{user_id}", response_model=List[EmergencyContact])
+async def get_emergency_contacts(user_id: str):
+    try:
+        contacts = await db.emergency_contacts.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+        for contact in contacts:
+            if isinstance(contact['created_at'], str):
+                contact['created_at'] = datetime.fromisoformat(contact['created_at'])
+        
+        return [EmergencyContact(**contact) for contact in contacts]
+    except Exception as e:
+        logging.error(f"Error getting emergency contacts: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/crisis/emergency-contacts/{contact_id}", response_model=EmergencyContact)
+async def update_emergency_contact(contact_id: str, update_data: EmergencyContactUpdate):
+    try:
+        contact = await db.emergency_contacts.find_one({"id": contact_id}, {"_id": 0})
+        if not contact:
+            raise HTTPException(status_code=404, detail="Emergency contact not found")
+        
+        update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+        
+        if update_dict:
+            await db.emergency_contacts.update_one(
+                {"id": contact_id},
+                {"$set": update_dict}
+            )
+        
+        updated_contact = await db.emergency_contacts.find_one({"id": contact_id}, {"_id": 0})
+        if isinstance(updated_contact['created_at'], str):
+            updated_contact['created_at'] = datetime.fromisoformat(updated_contact['created_at'])
+        
+        return EmergencyContact(**updated_contact)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error updating emergency contact: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/crisis/emergency-contacts/{contact_id}")
+async def delete_emergency_contact(contact_id: str):
+    try:
+        result = await db.emergency_contacts.delete_one({"id": contact_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Emergency contact not found")
+        
+        return {"message": "Emergency contact deleted successfully", "success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error deleting emergency contact: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/crisis/detect", response_model=CrisisDetectionResponse)
+async def detect_crisis(message: str):
+    try:
+        # Crisis keywords to detect
+        crisis_keywords = [
+            'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die', 
+            'self-harm', 'hurt myself', 'cut myself', 'harm myself', 
+            'no reason to live', 'better off dead', "can't go on", 
+            'end it all', 'take my life', 'overdose'
+        ]
+        
+        message_lower = message.lower()
+        detected = [keyword for keyword in crisis_keywords if keyword in message_lower]
+        
+        is_crisis = len(detected) > 0
+        severity = "low"
+        follow_up = None
+        
+        if is_crisis:
+            # Determine severity based on keywords
+            high_severity_keywords = ['kill myself', 'end my life', 'suicide', 'suicidal', 'take my life', 'overdose']
+            medium_severity_keywords = ['want to die', 'better off dead', 'no reason to live', "can't go on"]
+            
+            if any(keyword in message_lower for keyword in high_severity_keywords):
+                severity = "high"
+                follow_up = "I'm really concerned about what you're sharing. Are you having thoughts of hurting yourself right now? It's important that we get you immediate support."
+            elif any(keyword in message_lower for keyword in medium_severity_keywords):
+                severity = "medium"
+                follow_up = "I hear that you're going through a really difficult time. Have you been having thoughts about ending your life? I want to make sure you have the support you need."
+            else:
+                severity = "low"
+                follow_up = "Thank you for sharing that with me. Can you tell me more about what you're experiencing? I want to understand better so I can provide you with the right support."
+        
+        return CrisisDetectionResponse(
+            is_crisis=is_crisis,
+            severity=severity,
+            detected_keywords=detected,
+            follow_up_question=follow_up
+        )
+    except Exception as e:
+        logging.error(f"Error detecting crisis: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Socket.IO events
 @sio.event
 async def connect(sid, environ):
