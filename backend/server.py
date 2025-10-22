@@ -1156,6 +1156,122 @@ async def get_therapist_history(user_id: str):
             chat['timestamp'] = datetime.fromisoformat(chat['timestamp'])
     return history
 
+@api_router.get("/therapist/sessions/{user_id}")
+async def get_user_sessions(user_id: str):
+    """Get all therapy sessions for a user"""
+    sessions = await db.therapy_sessions.find({"user_id": user_id}, {"_id": 0}).sort("session_start", -1).to_list(50)
+    return sessions
+
+@api_router.get("/therapist/session/{session_id}")
+async def get_session_details(session_id: str):
+    """Get detailed information about a specific therapy session"""
+    session = await db.therapy_sessions.find_one({"session_id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Get all messages in this session
+    messages = await db.therapist_chats.find({"session_id": session_id}, {"_id": 0}).sort("timestamp", 1).to_list(100)
+    
+    session['messages'] = messages
+    return session
+
+@api_router.post("/therapist/session/end")
+async def end_therapy_session(session_data: dict):
+    """End a therapy session and save summary"""
+    session_id = session_data.get('session_id')
+    mood_at_end = session_data.get('mood_at_end')
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id required")
+    
+    update_data = {
+        "session_end": datetime.now(timezone.utc).isoformat(),
+    }
+    
+    if mood_at_end:
+        update_data['mood_at_end'] = mood_at_end
+    
+    await db.therapy_sessions.update_one(
+        {"session_id": session_id},
+        {"$set": update_data}
+    )
+    
+    return {"message": "Session ended successfully", "session_id": session_id}
+
+@api_router.post("/therapist/mood-checkin")
+async def create_mood_checkin(checkin: MoodCheckIn):
+    """Create a mood check-in"""
+    doc = checkin.model_dump()
+    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.mood_checkins.insert_one(doc)
+    return checkin
+
+@api_router.get("/therapist/mood-checkins/{user_id}")
+async def get_mood_checkins(user_id: str, limit: int = 30):
+    """Get user's mood check-ins"""
+    checkins = await db.mood_checkins.find({"user_id": user_id}, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(limit)
+    return checkins
+
+@api_router.get("/therapist/insights/{user_id}")
+async def get_therapy_insights(user_id: str):
+    """Generate AI-powered insights based on therapy sessions and mood patterns"""
+    try:
+        # Get therapy session data
+        sessions = await db.therapy_sessions.find({"user_id": user_id}, {"_id": 0}).sort("session_start", -1).limit(10).to_list(10)
+        
+        # Get recent conversations
+        recent_chats = await db.therapist_chats.find({"user_id": user_id}, {"_id": 0}).sort("timestamp", -1).limit(20).to_list(20)
+        
+        # Get mood logs
+        mood_logs = await db.mood_logs.find({"user_id": user_id}, {"_id": 0}).sort("timestamp", -1).limit(15).to_list(15)
+        
+        # Get mood check-ins
+        checkins = await db.mood_checkins.find({"user_id": user_id}, {"_id": 0}).sort("timestamp", -1).limit(10).to_list(10)
+        
+        # Build context for AI analysis
+        analysis_prompt = f"""As a professional therapist, analyze this user's mental health journey and provide therapeutic insights.
+
+THERAPY SESSION DATA:
+- Total sessions: {len(sessions)}
+- Total therapy conversations: {len(recent_chats)}
+
+RECENT MOOD PATTERNS:
+- Mood logs: {len(mood_logs)}
+- Recent moods: {[log.get('mood_text', '')[:50] for log in mood_logs[:5]]}
+
+MOOD CHECK-INS:
+- Check-ins completed: {len(checkins)}
+- Recent ratings: {[c.get('mood_rating') for c in checkins[:5]]}
+
+RECENT THERAPY TOPICS:
+{chr(10).join([f"- User: {chat.get('user_message', '')[:100]}" for chat in recent_chats[:5]])}
+
+Provide a comprehensive therapeutic insight report including:
+1. **Overall Progress Assessment**: What patterns do you see in their mental health journey?
+2. **Key Themes**: What recurring topics or concerns appear in their conversations?
+3. **Strengths Identified**: What coping skills or resilience factors are evident?
+4. **Areas for Growth**: What therapeutic areas could benefit from more focus?
+5. **Recommended Techniques**: Which CBT/DBT/mindfulness techniques would be most beneficial?
+6. **Encouragement**: A personalized, compassionate message acknowledging their progress.
+
+Keep the tone professional, warm, and encouraging. Focus on growth and resilience."""
+
+        response = model.generate_content(analysis_prompt)
+        insights_text = response.text.strip()
+        
+        return {
+            "user_id": user_id,
+            "total_sessions": len(sessions),
+            "total_conversations": len(recent_chats),
+            "total_mood_logs": len(mood_logs),
+            "total_checkins": len(checkins),
+            "ai_insights": insights_text,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logging.error(f"Error generating insights: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Community Routes
 @api_router.post("/communities/create", response_model=Community)
 async def create_community(community_data: CommunityCreate):
