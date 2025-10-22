@@ -791,6 +791,699 @@ class MoodMeshMeditationTest:
             print("⚠️  Some meditation tests FAILED!")
             return False
 
+class MoodMeshMusicTherapyTest:
+    def __init__(self):
+        self.base_url = BACKEND_URL
+        self.test_user_id = None
+        self.auth_token = None
+        self.test_username = f"music_test_user_{int(time.time())}"
+        self.test_password = "testpass123"
+        self.journal_id = None
+        
+    def log_test(self, test_name, status, message=""):
+        """Log test results"""
+        status_symbol = "✅" if status else "❌"
+        print(f"{status_symbol} {test_name}: {message}")
+        
+    def register_test_user(self):
+        """Register a test user for music therapy testing"""
+        try:
+            response = requests.post(f"{self.base_url}/auth/register", json={
+                "username": self.test_username,
+                "password": self.test_password
+            })
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.test_user_id = data["user_id"]
+                self.auth_token = data["access_token"]
+                self.log_test("Music User Registration", True, f"Created user: {self.test_username}")
+                return True
+            else:
+                self.log_test("Music User Registration", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Music User Registration", False, f"Exception: {str(e)}")
+            return False
+    
+    def create_mood_log_for_recommendations(self, mood_text):
+        """Create a mood log to test recommendations"""
+        try:
+            response = requests.post(f"{self.base_url}/mood/log", json={
+                "user_id": self.test_user_id,
+                "mood_text": mood_text
+            })
+            return response.status_code == 200
+        except:
+            return False
+    
+    # Phase 1: Built-in Audio Library Tests
+    def test_get_builtin_audio_library(self):
+        """Test GET /api/music/library - Should return categorized audio"""
+        try:
+            response = requests.get(f"{self.base_url}/music/library")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check structure - should have 3 categories
+                expected_categories = ["nature", "white_noise", "binaural_beats"]
+                missing_categories = [cat for cat in expected_categories if cat not in data]
+                
+                if missing_categories:
+                    self.log_test("Get Audio Library - Structure", False, f"Missing categories: {missing_categories}")
+                    return False
+                
+                # Count total items (should be 13 as per seeded data)
+                total_items = sum(len(data[cat]) for cat in expected_categories)
+                if total_items != 13:
+                    self.log_test("Get Audio Library - Count", False, f"Expected 13 items, got {total_items}")
+                    return False
+                
+                # Check nature sounds (should have 5)
+                if len(data["nature"]) != 5:
+                    self.log_test("Get Audio Library - Nature Count", False, f"Expected 5 nature sounds, got {len(data['nature'])}")
+                    return False
+                
+                # Check white noise (should have 3)
+                if len(data["white_noise"]) != 3:
+                    self.log_test("Get Audio Library - White Noise Count", False, f"Expected 3 white noise, got {len(data['white_noise'])}")
+                    return False
+                
+                # Check binaural beats (should have 4)
+                if len(data["binaural_beats"]) != 4:
+                    self.log_test("Get Audio Library - Binaural Count", False, f"Expected 4 binaural beats, got {len(data['binaural_beats'])}")
+                    return False
+                
+                # Check first item structure
+                if data["nature"]:
+                    first_item = data["nature"][0]
+                    required_keys = ["id", "title", "description", "category", "duration", "audio_url", "tags"]
+                    missing_keys = [key for key in required_keys if key not in first_item]
+                    
+                    if missing_keys:
+                        self.log_test("Get Audio Library - Item Structure", False, f"Missing keys: {missing_keys}")
+                        return False
+                
+                self.log_test("Get Audio Library", True, f"Successfully returned {total_items} audio items in 3 categories")
+                return True
+            else:
+                self.log_test("Get Audio Library", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Audio Library", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_audio_library_filtered(self):
+        """Test GET /api/music/library?category=nature - Category filtering"""
+        try:
+            response = requests.get(f"{self.base_url}/music/library?category=nature")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should still return all categories but only nature should have items
+                if "nature" not in data or "white_noise" not in data or "binaural_beats" not in data:
+                    self.log_test("Get Filtered Audio Library - Structure", False, "Missing category keys")
+                    return False
+                
+                # Nature should have 5 items
+                if len(data["nature"]) != 5:
+                    self.log_test("Get Filtered Audio Library - Nature Count", False, f"Expected 5 nature sounds, got {len(data['nature'])}")
+                    return False
+                
+                # Other categories should be empty when filtering by nature
+                if len(data["white_noise"]) != 0 or len(data["binaural_beats"]) != 0:
+                    self.log_test("Get Filtered Audio Library - Other Categories", False, "Other categories should be empty when filtering")
+                    return False
+                
+                self.log_test("Get Filtered Audio Library", True, f"Successfully filtered to {len(data['nature'])} nature sounds")
+                return True
+            else:
+                self.log_test("Get Filtered Audio Library", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Get Filtered Audio Library", False, f"Exception: {str(e)}")
+            return False
+    
+    # Phase 2: Spotify OAuth Tests
+    def test_spotify_login_endpoint(self):
+        """Test GET /api/music/spotify/login - Should return auth_url"""
+        try:
+            response = requests.get(f"{self.base_url}/music/spotify/login")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "auth_url" not in data:
+                    self.log_test("Spotify Login - Structure", False, "Missing 'auth_url' key")
+                    return False
+                
+                # Check if auth_url is a valid URL
+                auth_url = data["auth_url"]
+                if not auth_url.startswith("https://accounts.spotify.com/authorize"):
+                    self.log_test("Spotify Login - URL Format", False, f"Invalid auth URL format: {auth_url}")
+                    return False
+                
+                # Check if URL contains required parameters
+                required_params = ["client_id", "response_type", "redirect_uri", "scope"]
+                for param in required_params:
+                    if param not in auth_url:
+                        self.log_test("Spotify Login - URL Parameters", False, f"Missing parameter: {param}")
+                        return False
+                
+                self.log_test("Spotify Login", True, "Successfully generated Spotify auth URL")
+                return True
+            else:
+                self.log_test("Spotify Login", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Spotify Login", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_spotify_callback_endpoint_exists(self):
+        """Test that Spotify callback endpoint exists (can't test full flow without auth)"""
+        try:
+            # Test with invalid code to verify endpoint exists
+            response = requests.get(f"{self.base_url}/music/spotify/callback?code=invalid_test_code")
+            
+            # Should return 500 (error processing invalid code) not 404 (endpoint not found)
+            if response.status_code in [500, 400]:
+                self.log_test("Spotify Callback Endpoint", True, "Endpoint exists and processes requests")
+                return True
+            elif response.status_code == 404:
+                self.log_test("Spotify Callback Endpoint", False, "Endpoint not found")
+                return False
+            else:
+                self.log_test("Spotify Callback Endpoint", True, f"Endpoint exists (status: {response.status_code})")
+                return True
+        except Exception as e:
+            self.log_test("Spotify Callback Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    # Phase 3: AI Recommendations Tests
+    def test_music_recommendations_new_user(self):
+        """Test GET /api/music/recommendations/{user_id} - New user with no mood logs"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Music Recommendations (New User) - No User", False, "No test user available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/music/recommendations/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["mood_analysis", "builtin_recommendations", "spotify_genres", "spotify_search_suggestions"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Music Recommendations (New User) - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should have default recommendations for new users
+                if "Welcome" not in data["mood_analysis"]:
+                    self.log_test("Music Recommendations (New User) - Welcome Message", False, "Should contain welcome message for new users")
+                    return False
+                
+                # Should have some builtin recommendations
+                if not isinstance(data["builtin_recommendations"], list) or len(data["builtin_recommendations"]) == 0:
+                    self.log_test("Music Recommendations (New User) - Builtin Recs", False, "Should have builtin recommendations")
+                    return False
+                
+                # Check builtin recommendation structure
+                first_rec = data["builtin_recommendations"][0]
+                rec_keys = ["id", "title", "category", "reason"]
+                missing_rec_keys = [key for key in rec_keys if key not in first_rec]
+                
+                if missing_rec_keys:
+                    self.log_test("Music Recommendations (New User) - Rec Structure", False, f"Missing recommendation keys: {missing_rec_keys}")
+                    return False
+                
+                self.log_test("Music Recommendations (New User)", True, f"Successfully returned recommendations for new user")
+                return True
+            else:
+                self.log_test("Music Recommendations (New User)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Music Recommendations (New User)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_music_recommendations_with_mood_logs(self):
+        """Test GET /api/music/recommendations/{user_id} - User with mood logs"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Music Recommendations (With Mood) - No User", False, "No test user available")
+                return False
+            
+            # Create some mood logs first
+            mood_logs = [
+                "I'm feeling really stressed and anxious about work deadlines",
+                "Having trouble sleeping, my mind keeps racing with worries",
+                "Feeling overwhelmed and need something to help me focus"
+            ]
+            
+            for mood_text in mood_logs:
+                self.create_mood_log_for_recommendations(mood_text)
+                time.sleep(0.2)
+            
+            # Wait for processing
+            time.sleep(1)
+            
+            response = requests.get(f"{self.base_url}/music/recommendations/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["mood_analysis", "builtin_recommendations", "spotify_genres", "spotify_search_suggestions"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Music Recommendations (With Mood) - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should have personalized mood analysis (not welcome message)
+                if "Welcome" in data["mood_analysis"]:
+                    self.log_test("Music Recommendations (With Mood) - Personalized", False, "Should have personalized analysis, not welcome message")
+                    return False
+                
+                # Should have builtin recommendations
+                if not isinstance(data["builtin_recommendations"], list) or len(data["builtin_recommendations"]) == 0:
+                    self.log_test("Music Recommendations (With Mood) - Builtin Recs", False, "Should have builtin recommendations")
+                    return False
+                
+                # Should have Spotify genres
+                if not isinstance(data["spotify_genres"], list) or len(data["spotify_genres"]) == 0:
+                    self.log_test("Music Recommendations (With Mood) - Spotify Genres", False, "Should have Spotify genres")
+                    return False
+                
+                # Should have search suggestions
+                if not isinstance(data["spotify_search_suggestions"], list) or len(data["spotify_search_suggestions"]) == 0:
+                    self.log_test("Music Recommendations (With Mood) - Search Suggestions", False, "Should have search suggestions")
+                    return False
+                
+                self.log_test("Music Recommendations (With Mood)", True, f"Successfully returned personalized recommendations")
+                return True
+            else:
+                self.log_test("Music Recommendations (With Mood)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Music Recommendations (With Mood)", False, f"Exception: {str(e)}")
+            return False
+    
+    # Phase 4: Audio Journaling Tests
+    def test_create_audio_journal(self):
+        """Test POST /api/music/journal/create - Create audio journal entry"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Create Audio Journal - No User", False, "No test user available")
+                return False
+            
+            journal_data = {
+                "user_id": self.test_user_id,
+                "mood": "calm",
+                "journal_text": "Today I listened to ocean waves while reflecting on my day. It helped me feel more centered and peaceful.",
+                "voice_recording_url": "https://example.com/voice_recording.mp3",
+                "music_played": "Ocean Waves",
+                "music_source": "builtin"
+            }
+            
+            response = requests.post(f"{self.base_url}/music/journal/create", json=journal_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["message", "journal_id", "stars_earned"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Create Audio Journal - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should award 3 wellness stars
+                if data["stars_earned"] != 3:
+                    self.log_test("Create Audio Journal - Stars", False, f"Expected 3 stars, got {data['stars_earned']}")
+                    return False
+                
+                # Store journal ID for later tests
+                self.journal_id = data["journal_id"]
+                
+                self.log_test("Create Audio Journal", True, f"Successfully created journal, earned {data['stars_earned']} stars")
+                return True
+            else:
+                self.log_test("Create Audio Journal", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Create Audio Journal", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_create_audio_journal_minimal(self):
+        """Test POST /api/music/journal/create - With minimal required fields"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Create Audio Journal (Minimal) - No User", False, "No test user available")
+                return False
+            
+            # Test with only required fields
+            journal_data = {
+                "user_id": self.test_user_id,
+                "mood": "reflective",
+                "journal_text": "A simple journal entry without voice recording or music context."
+            }
+            
+            response = requests.post(f"{self.base_url}/music/journal/create", json=journal_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should still award 3 stars
+                if data["stars_earned"] != 3:
+                    self.log_test("Create Audio Journal (Minimal) - Stars", False, f"Expected 3 stars, got {data['stars_earned']}")
+                    return False
+                
+                self.log_test("Create Audio Journal (Minimal)", True, "Successfully created minimal journal entry")
+                return True
+            else:
+                self.log_test("Create Audio Journal (Minimal)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Create Audio Journal (Minimal)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_user_audio_journals(self):
+        """Test GET /api/music/journal/{user_id} - Get user's journals"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Get Audio Journals - No User", False, "No test user available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/music/journal/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "journals" not in data:
+                    self.log_test("Get Audio Journals - Structure", False, "Missing 'journals' key")
+                    return False
+                
+                journals = data["journals"]
+                
+                # Should have at least 2 journals from previous tests
+                if len(journals) < 2:
+                    self.log_test("Get Audio Journals - Count", False, f"Expected at least 2 journals, got {len(journals)}")
+                    return False
+                
+                # Check first journal structure
+                first_journal = journals[0]
+                required_keys = ["id", "user_id", "mood", "journal_text", "timestamp"]
+                missing_keys = [key for key in required_keys if key not in first_journal]
+                
+                if missing_keys:
+                    self.log_test("Get Audio Journals - Journal Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify user_id matches
+                if first_journal["user_id"] != self.test_user_id:
+                    self.log_test("Get Audio Journals - User ID", False, "Journal user_id doesn't match")
+                    return False
+                
+                self.log_test("Get Audio Journals", True, f"Successfully retrieved {len(journals)} journal entries")
+                return True
+            else:
+                self.log_test("Get Audio Journals", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Audio Journals", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_specific_audio_journal(self):
+        """Test GET /api/music/journal/entry/{journal_id} - Get specific journal"""
+        try:
+            if not self.journal_id:
+                self.log_test("Get Specific Journal - No Journal ID", False, "No journal ID available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/music/journal/entry/{self.journal_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check structure
+                required_keys = ["id", "user_id", "mood", "journal_text", "timestamp"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Get Specific Journal - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify it's the correct journal
+                if data["id"] != self.journal_id:
+                    self.log_test("Get Specific Journal - ID Match", False, "Journal ID doesn't match")
+                    return False
+                
+                if data["user_id"] != self.test_user_id:
+                    self.log_test("Get Specific Journal - User ID", False, "User ID doesn't match")
+                    return False
+                
+                self.log_test("Get Specific Journal", True, f"Successfully retrieved specific journal: {data['mood']}")
+                return True
+            else:
+                self.log_test("Get Specific Journal", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Specific Journal", False, f"Exception: {str(e)}")
+            return False
+    
+    # Phase 5: Music History Tests
+    def test_save_music_history(self):
+        """Test POST /api/music/history/save - Save listening history"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Save Music History - No User", False, "No test user available")
+                return False
+            
+            history_data = {
+                "user_id": self.test_user_id,
+                "track_name": "Ocean Waves",
+                "artist": "Nature Sounds",
+                "source": "builtin",
+                "mood_context": "relaxation",
+                "duration_played": 1800
+            }
+            
+            response = requests.post(f"{self.base_url}/music/history/save", json=history_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "message" not in data:
+                    self.log_test("Save Music History - Structure", False, "Missing 'message' key")
+                    return False
+                
+                if "successfully" not in data["message"].lower():
+                    self.log_test("Save Music History - Success Message", False, f"Unexpected message: {data['message']}")
+                    return False
+                
+                self.log_test("Save Music History", True, "Successfully saved music history")
+                return True
+            else:
+                self.log_test("Save Music History", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Save Music History", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_save_spotify_music_history(self):
+        """Test POST /api/music/history/save - Save Spotify track"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Save Spotify History - No User", False, "No test user available")
+                return False
+            
+            history_data = {
+                "user_id": self.test_user_id,
+                "track_name": "Weightless",
+                "artist": "Marconi Union",
+                "source": "spotify",
+                "mood_context": "anxiety relief",
+                "duration_played": 480
+            }
+            
+            response = requests.post(f"{self.base_url}/music/history/save", json=history_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "successfully" not in data["message"].lower():
+                    self.log_test("Save Spotify History - Success Message", False, f"Unexpected message: {data['message']}")
+                    return False
+                
+                self.log_test("Save Spotify History", True, "Successfully saved Spotify history")
+                return True
+            else:
+                self.log_test("Save Spotify History", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Save Spotify History", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_music_history(self):
+        """Test GET /api/music/history/{user_id} - Get listening history"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Get Music History - No User", False, "No test user available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/music/history/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "history" not in data:
+                    self.log_test("Get Music History - Structure", False, "Missing 'history' key")
+                    return False
+                
+                history = data["history"]
+                
+                # Should have at least 2 history entries from previous tests
+                if len(history) < 2:
+                    self.log_test("Get Music History - Count", False, f"Expected at least 2 history entries, got {len(history)}")
+                    return False
+                
+                # Check first history entry structure
+                first_entry = history[0]
+                required_keys = ["id", "user_id", "track_name", "artist", "source", "timestamp"]
+                missing_keys = [key for key in required_keys if key not in first_entry]
+                
+                if missing_keys:
+                    self.log_test("Get Music History - Entry Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify user_id matches
+                if first_entry["user_id"] != self.test_user_id:
+                    self.log_test("Get Music History - User ID", False, "History user_id doesn't match")
+                    return False
+                
+                # Check that we have both builtin and spotify sources
+                sources = set(entry["source"] for entry in history)
+                if "builtin" not in sources or "spotify" not in sources:
+                    self.log_test("Get Music History - Sources", False, f"Expected both builtin and spotify sources, got: {sources}")
+                    return False
+                
+                self.log_test("Get Music History", True, f"Successfully retrieved {len(history)} history entries")
+                return True
+            else:
+                self.log_test("Get Music History", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Music History", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_music_endpoints_availability(self):
+        """Test if all music therapy endpoints are available"""
+        try:
+            endpoints = [
+                "/music/library",
+                "/music/spotify/login",
+                f"/music/recommendations/{str(uuid.uuid4())}",
+                f"/music/journal/{str(uuid.uuid4())}",
+                f"/music/history/{str(uuid.uuid4())}"
+            ]
+            
+            all_available = True
+            for endpoint in endpoints:
+                response = requests.get(f"{self.base_url}{endpoint}")
+                if response.status_code not in [200, 404, 500]:  # 500 is acceptable for some endpoints without proper auth
+                    self.log_test(f"Endpoint {endpoint}", False, f"Status: {response.status_code}")
+                    all_available = False
+            
+            if all_available:
+                self.log_test("Music Endpoints Availability", True, "All endpoints are accessible")
+                return True
+            else:
+                self.log_test("Music Endpoints Availability", False, "Some endpoints are not accessible")
+                return False
+        except Exception as e:
+            self.log_test("Music Endpoints Availability", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_all_tests(self):
+        """Run all music therapy tests"""
+        print("=" * 60)
+        print("🎵 MOODMESH MUSIC THERAPY BACKEND TESTING")
+        print("=" * 60)
+        
+        results = {}
+        
+        # Test endpoint availability first
+        results["endpoints_availability"] = self.test_music_endpoints_availability()
+        
+        # Phase 1: Built-in Audio Library (No auth required)
+        results["builtin_audio_library"] = self.test_get_builtin_audio_library()
+        results["audio_library_filtering"] = self.test_get_audio_library_filtered()
+        
+        # Phase 2: Spotify OAuth Flow
+        results["spotify_login"] = self.test_spotify_login_endpoint()
+        results["spotify_callback_exists"] = self.test_spotify_callback_endpoint_exists()
+        
+        # Register test user for user-specific tests
+        if self.register_test_user():
+            results["user_registration"] = True
+            
+            # Phase 3: AI Recommendations
+            results["recommendations_new_user"] = self.test_music_recommendations_new_user()
+            results["recommendations_with_mood"] = self.test_music_recommendations_with_mood_logs()
+            
+            # Phase 4: Audio Journaling
+            results["create_audio_journal"] = self.test_create_audio_journal()
+            results["create_journal_minimal"] = self.test_create_audio_journal_minimal()
+            results["get_user_journals"] = self.test_get_user_audio_journals()
+            results["get_specific_journal"] = self.test_get_specific_audio_journal()
+            
+            # Phase 5: Music History
+            results["save_music_history"] = self.test_save_music_history()
+            results["save_spotify_history"] = self.test_save_spotify_music_history()
+            results["get_music_history"] = self.test_get_music_history()
+        else:
+            results["user_registration"] = False
+            results["recommendations_new_user"] = False
+            results["recommendations_with_mood"] = False
+            results["create_audio_journal"] = False
+            results["create_journal_minimal"] = False
+            results["get_user_journals"] = False
+            results["get_specific_journal"] = False
+            results["save_music_history"] = False
+            results["save_spotify_history"] = False
+            results["get_music_history"] = False
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 MUSIC THERAPY TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in results.values() if result)
+        total = len(results)
+        
+        for test_name, result in results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} {test_name.replace('_', ' ').title()}")
+        
+        print(f"\n🎯 Overall: {passed}/{total} tests passed")
+        
+        if passed == total:
+            print("🎉 All music therapy tests PASSED!")
+            return True
+        else:
+            print("⚠️  Some music therapy tests FAILED!")
+            return False
+
 class MoodMeshResourceLibraryTest:
     def __init__(self):
         self.base_url = BACKEND_URL
