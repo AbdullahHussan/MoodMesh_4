@@ -82,7 +82,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link to="/mood-log" className="block" data-testid="mood-log-card">
             <Card className="h-full border-2 hover:border-teal-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1">
               <CardHeader>
@@ -94,6 +94,22 @@ const Dashboard = () => {
                 </div>
                 <CardDescription className="text-sm">
                   Share how you're feeling and receive personalized AI-powered coping strategies.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link to="/analytics" className="block" data-testid="analytics-card">
+            <Card className="h-full border-2 hover:border-emerald-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-emerald-100 rounded-full">
+                    <TrendingUp className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <CardTitle className="text-xl">Analytics</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  View insights and patterns from your mood logs with AI-powered analysis.
                 </CardDescription>
               </CardHeader>
             </Card>
