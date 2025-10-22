@@ -131,6 +131,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ ALL MEDITATION ENDPOINTS WORKING PERFECTLY! Comprehensive testing completed: (1) GET /api/meditation/exercises returns 5 breathing exercises with correct structure (Box Breathing, 4-7-8, Deep Belly, Alternate Nostril, Resonant). (2) GET /api/meditation/sessions returns 10 meditation sessions across 4 categories (stress_relief, sleep, focus, anxiety). (3) Category filtering works correctly (e.g., ?category=stress_relief). (4) POST /api/meditation/start successfully creates sessions in database. (5) POST /api/meditation/complete marks sessions complete and awards 2 wellness stars correctly. (6) GET /api/meditation/progress/{user_id} calculates statistics accurately (total sessions, minutes, streaks, recent sessions). (7) GET /api/meditation/recommendations/{user_id} provides smart recommendations based on mood patterns (stress→Box Breathing+Deep Stress Release, anxiety→4-7-8 Breathing+Anxiety Relief, sleep→sleep meditations, focus→focus meditations). Database storage verified - meditation_sessions collection working correctly. Wellness stars integration confirmed - users receive 2 stars per completed session. All 9 test scenarios passed (15/15 total tests including analytics)."
+  
+  - task: "Resource Library API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive resource library endpoints: GET /api/resources (all resources with filtering by category, subcategory, content_type, search), GET /api/resources/{resource_id} (single resource with view count increment), POST /api/resources/bookmark (bookmark resource), DELETE /api/resources/bookmark/{user_id}/{resource_id} (remove bookmark), GET /api/resources/bookmarks/{user_id} (user's bookmarked resources), GET /api/resources/categories/summary (category counts). Seeded 13 educational resources covering: (1) Mental health conditions - anxiety, depression, PTSD articles, (2) CBT techniques - thought records exercise, (3) DBT techniques - distress tolerance skills, (4) Video resources - anxiety management, depression recovery, mindfulness, (5) Reading recommendations - Feeling Good (CBT book), The Body Keeps the Score (trauma), (6) Myth-busting - depression myths, therapy stigma, medication misconceptions. Auto-seeds database on first request."
 
 frontend:
   - task: "Analytics Dashboard Page"
