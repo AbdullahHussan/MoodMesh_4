@@ -237,6 +237,37 @@ class MeditationSessionStart(BaseModel):
 class MeditationSessionComplete(BaseModel):
     session_id: str
 
+# Resource Library Models
+class Resource(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    category: str  # conditions, techniques, videos, reading, myths
+    subcategory: Optional[str] = None  # anxiety, depression, cbt, dbt, etc.
+    content_type: str  # article, video, exercise, book, myth
+    description: str
+    content: str  # Full content/article text or exercise instructions
+    author: Optional[str] = None
+    source_url: Optional[str] = None  # External link for videos or articles
+    duration_minutes: Optional[int] = None  # For videos or exercises
+    difficulty: Optional[str] = None  # beginner, intermediate, advanced
+    tags: List[str] = []
+    image_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    views: int = 0
+    bookmarks: int = 0
+
+class ResourceBookmark(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    resource_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ResourceBookmarkCreate(BaseModel):
+    user_id: str
+    resource_id: str
+
 # JWT Helper Functions
 def create_access_token(data: dict):
     to_encode = data.copy()
