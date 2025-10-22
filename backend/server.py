@@ -107,6 +107,8 @@ class TherapistChatResponse(BaseModel):
     user_id: str
     user_message: str
     therapist_response: str
+    crisis_detected: bool = False
+    crisis_severity: Optional[str] = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CommunityCreate(BaseModel):
