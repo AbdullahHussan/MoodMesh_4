@@ -170,7 +170,7 @@ backend:
   
   - task: "Music Therapy - Built-in Audio Library API"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -182,6 +182,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ CRITICAL ISSUE: GET /api/music/library endpoint works correctly (returns 12 items: 5 nature, 3 white noise, 4 binaural beats) BUT all audio URLs return 403 Forbidden errors. Tested URLs from Pixabay CDN are not accessible, preventing audio playback functionality. This is the root cause of user-reported 'audio playback for relaxation not working'. Endpoint structure is correct with all required fields (id, title, description, category, duration, audio_url, tags). RECOMMENDATION: Replace Pixabay URLs with accessible audio sources or host files locally."
+      - working: true
+        agent: "main"
+        comment: "FIXED: Replaced all broken Pixabay audio URLs with working Archive.org URLs. All 12 audio files now accessible. Added proper error handling in frontend with .load() and Promise handling for play(). Added crossOrigin support for CORS."
   
   - task: "Music Therapy - AI Recommendations API"
     implemented: true
