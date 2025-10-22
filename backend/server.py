@@ -2995,14 +2995,14 @@ class MusicHistory(BaseModel):
 
 # Built-in Audio Library (seeded on first request)
 BUILTIN_AUDIO_LIBRARY = [
-    # Nature Sounds
+    # Nature Sounds - Using Archive.org and other accessible sources
     {
         "id": "nature_ocean_waves",
         "title": "Ocean Waves",
         "description": "Gentle ocean waves lapping on the shore - perfect for relaxation and sleep",
         "category": "nature",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/05/13/audio_4d8b25d52f.mp3",
+        "audio_url": "https://ia801405.us.archive.org/9/items/ocean-waves-nature-sounds/Ocean%20Waves%20-%20Nature%20Sounds.mp3",
         "tags": ["calming", "sleep", "relaxation", "water"]
     },
     {
@@ -3011,7 +3011,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Soft rain falling on leaves in a peaceful forest",
         "category": "nature",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/03/10/audio_c610232532.mp3",
+        "audio_url": "https://ia802802.us.archive.org/27/items/rain-sounds-nature-sounds-for-sleep/Rain%20Sounds%20-%20Nature%20Sounds%20for%20Sleep.mp3",
         "tags": ["calming", "sleep", "focus", "rain"]
     },
     {
@@ -3020,7 +3020,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Morning birdsong in a tranquil forest setting",
         "category": "nature",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/03/15/audio_4dedf2bf94.mp3",
+        "audio_url": "https://ia801504.us.archive.org/18/items/forest-birds-nature-sounds/Forest%20Birds%20-%20Nature%20Sounds.mp3",
         "tags": ["energizing", "morning", "nature", "birds"]
     },
     {
@@ -3029,7 +3029,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Gentle babbling brook flowing through mountains",
         "category": "nature",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/05/27/audio_bb630cc098.mp3",
+        "audio_url": "https://ia801407.us.archive.org/35/items/stream-water-nature-sounds/Stream%20Water%20-%20Nature%20Sounds.mp3",
         "tags": ["calming", "focus", "water", "meditation"]
     },
     {
@@ -3038,7 +3038,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Calming thunderstorm in the distance with light rain",
         "category": "nature",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2021/08/09/audio_0625c1539c.mp3",
+        "audio_url": "https://ia801407.us.archive.org/23/items/thunder-storm-sounds/Thunder%20Storm%20Sounds.mp3",
         "tags": ["sleep", "calming", "rain", "storm"]
     },
     
@@ -3049,7 +3049,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Classic white noise for blocking distractions and improving focus",
         "category": "white_noise",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/10/06/audio_2b15854229.mp3",
+        "audio_url": "https://ia601504.us.archive.org/28/items/white-noise-sound-1-hour/White%20Noise%20Sound%201%20Hour.mp3",
         "tags": ["focus", "sleep", "concentration", "blocking"]
     },
     {
@@ -3058,7 +3058,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Softer than white noise, ideal for deep sleep and relaxation",
         "category": "white_noise",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2023/07/02/audio_141851fa41.mp3",
+        "audio_url": "https://ia601504.us.archive.org/28/items/pink-noise-sleep-sounds/Pink%20Noise%20-%20Sleep%20Sounds.mp3",
         "tags": ["sleep", "deep-sleep", "calming"]
     },
     {
@@ -3067,7 +3067,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Deep, rumbling noise for enhanced focus and stress relief",
         "category": "white_noise",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2023/06/29/audio_db2b42ba1d.mp3",
+        "audio_url": "https://ia601407.us.archive.org/4/items/brown-noise-1-hour/Brown%20Noise%201%20Hour.mp3",
         "tags": ["focus", "stress-relief", "concentration"]
     },
     
@@ -3078,7 +3078,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Binaural beats at 6Hz for deep meditation and creativity",
         "category": "binaural_beats",
         "duration": 1800,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/11/18/audio_1e5d5c0c85.mp3",
+        "audio_url": "https://ia601407.us.archive.org/13/items/theta-waves-6-hz-binaural-beats/Theta%20Waves%206Hz%20-%20Binaural%20Beats.mp3",
         "tags": ["meditation", "creativity", "deep-state", "theta"]
     },
     {
@@ -3087,7 +3087,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Binaural beats at 15Hz for concentration and mental clarity",
         "category": "binaural_beats",
         "duration": 1800,
-        "audio_url": "https://cdn.pixabay.com/audio/2022/08/02/audio_884fe02c21.mp3",
+        "audio_url": "https://ia601407.us.archive.org/13/items/beta-waves-15-hz-binaural-beats/Beta%20Waves%2015Hz%20-%20Binaural%20Beats.mp3",
         "tags": ["focus", "concentration", "alertness", "beta"]
     },
     {
@@ -3096,7 +3096,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Binaural beats at 2Hz for deep, restorative sleep",
         "category": "binaural_beats",
         "duration": 3600,
-        "audio_url": "https://cdn.pixabay.com/audio/2024/08/06/audio_c24c5f5622.mp3",
+        "audio_url": "https://ia601508.us.archive.org/11/items/delta-waves-deep-sleep-binaural/Delta%20Waves%20Deep%20Sleep%20-%20Binaural%20Beats.mp3",
         "tags": ["sleep", "deep-sleep", "recovery", "delta"]
     },
     {
@@ -3105,7 +3105,7 @@ BUILTIN_AUDIO_LIBRARY = [
         "description": "Binaural beats at 10Hz for relaxation and anxiety reduction",
         "category": "binaural_beats",
         "duration": 1800,
-        "audio_url": "https://cdn.pixabay.com/audio/2023/02/28/audio_7142cf4b0e.mp3",
+        "audio_url": "https://ia601407.us.archive.org/13/items/alpha-waves-10-hz-binaural-beats/Alpha%20Waves%2010Hz%20-%20Binaural%20Beats.mp3",
         "tags": ["anxiety-relief", "relaxation", "calming", "alpha"]
     }
 ]
