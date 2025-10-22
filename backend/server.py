@@ -452,6 +452,314 @@ async def get_mood_analytics(user_id: str):
         logging.error(f"Error getting mood analytics: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/achievements/{user_id}")
+async def get_achievements(user_id: str):
+    try:
+        # Get user activity data
+        mood_logs = await db.mood_logs.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+        therapist_chats = await db.therapist_chats.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+        communities = await db.communities.find({"member_ids": user_id}, {"_id": 0}).to_list(1000)
+        chat_messages = await db.chat_messages.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+        
+        # Parse timestamps for mood logs
+        for log in mood_logs:
+            if isinstance(log['timestamp'], str):
+                log['timestamp'] = datetime.fromisoformat(log['timestamp'])
+        
+        mood_logs.sort(key=lambda x: x['timestamp'])
+        
+        # Calculate statistics
+        total_mood_logs = len(mood_logs)
+        total_therapist_sessions = len(therapist_chats)
+        total_communities_joined = len(communities)
+        total_community_messages = len(chat_messages)
+        
+        # Calculate streaks
+        dates_logged = sorted(set(log['timestamp'].date() for log in mood_logs))
+        current_streak = 0
+        longest_streak = 0
+        temp_streak = 1
+        
+        today = datetime.now(timezone.utc).date()
+        
+        if dates_logged:
+            # Current streak
+            if dates_logged[-1] == today or dates_logged[-1] == today - timedelta(days=1):
+                current_streak = 1
+                for i in range(len(dates_logged) - 2, -1, -1):
+                    if dates_logged[i] == dates_logged[i + 1] - timedelta(days=1):
+                        current_streak += 1
+                    else:
+                        break
+            
+            # Longest streak
+            for i in range(1, len(dates_logged)):
+                if dates_logged[i] == dates_logged[i - 1] + timedelta(days=1):
+                    temp_streak += 1
+                    longest_streak = max(longest_streak, temp_streak)
+                else:
+                    temp_streak = 1
+            longest_streak = max(longest_streak, temp_streak)
+        
+        # Calculate time patterns
+        early_bird_count = sum(1 for log in mood_logs if 5 <= log['timestamp'].hour < 9)
+        night_owl_count = sum(1 for log in mood_logs if 22 <= log['timestamp'].hour or log['timestamp'].hour < 5)
+        
+        # Define all achievements
+        achievements = [
+            # Mood Logging Achievements
+            {
+                "id": "first_step",
+                "name": "First Step",
+                "description": "Log your first mood",
+                "icon": "🌱",
+                "category": "mood_logging",
+                "tier": "bronze",
+                "progress": min(total_mood_logs, 1),
+                "target": 1,
+                "earned": total_mood_logs >= 1
+            },
+            {
+                "id": "getting_started",
+                "name": "Getting Started",
+                "description": "Log 5 moods",
+                "icon": "🌿",
+                "category": "mood_logging",
+                "tier": "bronze",
+                "progress": min(total_mood_logs, 5),
+                "target": 5,
+                "earned": total_mood_logs >= 5
+            },
+            {
+                "id": "committed",
+                "name": "Committed",
+                "description": "Log 10 moods",
+                "icon": "🌳",
+                "category": "mood_logging",
+                "tier": "silver",
+                "progress": min(total_mood_logs, 10),
+                "target": 10,
+                "earned": total_mood_logs >= 10
+            },
+            {
+                "id": "dedicated",
+                "name": "Dedicated",
+                "description": "Log 25 moods",
+                "icon": "🎋",
+                "category": "mood_logging",
+                "tier": "silver",
+                "progress": min(total_mood_logs, 25),
+                "target": 25,
+                "earned": total_mood_logs >= 25
+            },
+            {
+                "id": "wellness_champion",
+                "name": "Wellness Champion",
+                "description": "Log 50 moods",
+                "icon": "🏆",
+                "category": "mood_logging",
+                "tier": "gold",
+                "progress": min(total_mood_logs, 50),
+                "target": 50,
+                "earned": total_mood_logs >= 50
+            },
+            {
+                "id": "mindfulness_master",
+                "name": "Mindfulness Master",
+                "description": "Log 100 moods",
+                "icon": "👑",
+                "category": "mood_logging",
+                "tier": "platinum",
+                "progress": min(total_mood_logs, 100),
+                "target": 100,
+                "earned": total_mood_logs >= 100
+            },
+            
+            # Streak Achievements
+            {
+                "id": "streak_starter",
+                "name": "Streak Starter",
+                "description": "Maintain a 3-day streak",
+                "icon": "🔥",
+                "category": "streaks",
+                "tier": "bronze",
+                "progress": min(longest_streak, 3),
+                "target": 3,
+                "earned": longest_streak >= 3
+            },
+            {
+                "id": "week_warrior",
+                "name": "Week Warrior",
+                "description": "Maintain a 7-day streak",
+                "icon": "⚡",
+                "category": "streaks",
+                "tier": "silver",
+                "progress": min(longest_streak, 7),
+                "target": 7,
+                "earned": longest_streak >= 7
+            },
+            {
+                "id": "consistency_king",
+                "name": "Consistency King",
+                "description": "Maintain a 14-day streak",
+                "icon": "💪",
+                "category": "streaks",
+                "tier": "gold",
+                "progress": min(longest_streak, 14),
+                "target": 14,
+                "earned": longest_streak >= 14
+            },
+            {
+                "id": "month_master",
+                "name": "Month Master",
+                "description": "Maintain a 30-day streak",
+                "icon": "🎯",
+                "category": "streaks",
+                "tier": "platinum",
+                "progress": min(longest_streak, 30),
+                "target": 30,
+                "earned": longest_streak >= 30
+            },
+            
+            # AI Therapist Achievements
+            {
+                "id": "seeking_help",
+                "name": "Seeking Help",
+                "description": "Start your first therapy session",
+                "icon": "🤝",
+                "category": "therapy",
+                "tier": "bronze",
+                "progress": min(total_therapist_sessions, 1),
+                "target": 1,
+                "earned": total_therapist_sessions >= 1
+            },
+            {
+                "id": "regular_visitor",
+                "name": "Regular Visitor",
+                "description": "Complete 5 therapy sessions",
+                "icon": "💬",
+                "category": "therapy",
+                "tier": "silver",
+                "progress": min(total_therapist_sessions, 5),
+                "target": 5,
+                "earned": total_therapist_sessions >= 5
+            },
+            {
+                "id": "therapy_advocate",
+                "name": "Therapy Advocate",
+                "description": "Complete 10 therapy sessions",
+                "icon": "💙",
+                "category": "therapy",
+                "tier": "gold",
+                "progress": min(total_therapist_sessions, 10),
+                "target": 10,
+                "earned": total_therapist_sessions >= 10
+            },
+            
+            # Community Achievements
+            {
+                "id": "community_member",
+                "name": "Community Member",
+                "description": "Join your first community",
+                "icon": "👥",
+                "category": "community",
+                "tier": "bronze",
+                "progress": min(total_communities_joined, 1),
+                "target": 1,
+                "earned": total_communities_joined >= 1
+            },
+            {
+                "id": "social_butterfly",
+                "name": "Social Butterfly",
+                "description": "Send 10 community messages",
+                "icon": "🦋",
+                "category": "community",
+                "tier": "silver",
+                "progress": min(total_community_messages, 10),
+                "target": 10,
+                "earned": total_community_messages >= 10
+            },
+            {
+                "id": "support_giver",
+                "name": "Support Giver",
+                "description": "Send 50 community messages",
+                "icon": "❤️",
+                "category": "community",
+                "tier": "gold",
+                "progress": min(total_community_messages, 50),
+                "target": 50,
+                "earned": total_community_messages >= 50
+            },
+            
+            # Special Achievements
+            {
+                "id": "early_bird",
+                "name": "Early Bird",
+                "description": "Log 10 moods in the morning (5-9 AM)",
+                "icon": "🌅",
+                "category": "special",
+                "tier": "silver",
+                "progress": min(early_bird_count, 10),
+                "target": 10,
+                "earned": early_bird_count >= 10
+            },
+            {
+                "id": "night_owl",
+                "name": "Night Owl",
+                "description": "Log 10 moods at night (10 PM - 5 AM)",
+                "icon": "🦉",
+                "category": "special",
+                "tier": "silver",
+                "progress": min(night_owl_count, 10),
+                "target": 10,
+                "earned": night_owl_count >= 10
+            },
+            {
+                "id": "explorer",
+                "name": "Explorer",
+                "description": "Use all 4 main features (Mood Log, Analytics, AI Therapist, Communities)",
+                "icon": "🧭",
+                "category": "special",
+                "tier": "gold",
+                "progress": sum([
+                    1 if total_mood_logs > 0 else 0,
+                    1 if total_therapist_sessions > 0 else 0,
+                    1 if total_communities_joined > 0 else 0,
+                    1  # Analytics (they're viewing this)
+                ]),
+                "target": 4,
+                "earned": total_mood_logs > 0 and total_therapist_sessions > 0 and total_communities_joined > 0
+            }
+        ]
+        
+        # Separate earned and locked achievements
+        earned_achievements = [a for a in achievements if a["earned"]]
+        locked_achievements = [a for a in achievements if not a["earned"]]
+        
+        # Calculate total stats
+        total_achievements = len(achievements)
+        earned_count = len(earned_achievements)
+        completion_percentage = int((earned_count / total_achievements) * 100)
+        
+        return {
+            "earned": earned_achievements,
+            "locked": locked_achievements,
+            "total_achievements": total_achievements,
+            "earned_count": earned_count,
+            "completion_percentage": completion_percentage,
+            "stats": {
+                "total_mood_logs": total_mood_logs,
+                "total_therapist_sessions": total_therapist_sessions,
+                "total_communities_joined": total_communities_joined,
+                "total_community_messages": total_community_messages,
+                "current_streak": current_streak,
+                "longest_streak": longest_streak
+            }
+        }
+    except Exception as e:
+        logging.error(f"Error getting achievements: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/profile/create", response_model=UserProfile)
 async def create_profile(username: str, user_id: Optional[str] = None):
     if not user_id:
