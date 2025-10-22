@@ -12,11 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot } from "lucide-react";
+import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot, TrendingUp } from "lucide-react";
 import Communities from "@/pages/Communities";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import HomePage from "@/pages/HomePage";
+import Analytics from "@/pages/Analytics";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
