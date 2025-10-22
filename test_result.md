@@ -104,7 +104,7 @@
 
 user_problem_statement: "Build Mood Analytics & Insights Dashboard feature that shows mood patterns, trends, time analysis, common emotions, and AI-generated insights. Add Guided Meditation & Breathing Exercises feature with audio-guided sessions, breathing exercises, meditation sessions, progress tracking, and smart recommendations based on mood. Add Resource Library & Psychoeducation feature with educational articles on mental health conditions (anxiety, depression, PTSD), CBT/DBT coping techniques, video resources, reading recommendations, and myth-busting content."
 
-latest_task: "Remove Mood-Based Music & Sound Therapy feature completely from both backend and frontend."
+latest_task: "Upgrade AI Therapist with advanced features: 24/7 conversational support using Gemini 2.0 Flash, contextual responses based on user's mood history & patterns, CBT/DBT technique recommendations during conversations, enhanced crisis language detection with safety prompts, mood check-in reminders via chat, multi-turn conversation with session memory."
 
 backend:
   - task: "Analytics API endpoint"
