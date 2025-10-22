@@ -244,6 +244,54 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ SUCCESSFULLY REMOVED: All music history tracking endpoints have been completely removed from the backend. Tested endpoints /api/music/history/save, /api/music/history/{user_id} all return 404 Not Found as expected. Music therapy feature removal completed successfully."
+  
+  - task: "Enhanced AI Therapist - Advanced Chat with Mood Context"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MAJOR UPGRADE: Enhanced POST /api/therapist/chat endpoint with: (1) Session management - creates and tracks therapy sessions with session_id, (2) Mood pattern integration - fetches and analyzes user's recent 10 mood logs to provide contextual responses, (3) Enhanced crisis detection - expanded keywords including 'worthless', 'hopeless', 'give up', 'can't take it anymore', (4) Increased conversation history from 5 to 10 messages for better context, (5) Advanced system prompt with CBT/DBT/mindfulness expertise, (6) Automatic therapeutic technique recommendations based on message analysis (CBT for cognitive patterns, DBT for emotional overwhelm, mindfulness for anxiety), (7) Returns suggested_techniques array with step-by-step instructions, (8) Returns mood_context object with recent mood patterns. Uses Gemini 2.0 Flash."
+  
+  - task: "AI Therapist - Session Management API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created therapy session endpoints: GET /api/therapist/sessions/{user_id} (get all user sessions), GET /api/therapist/session/{session_id} (get session details with all messages), POST /api/therapist/session/end (end session and save summary with optional mood_at_end). Sessions track message_count, last_activity, topics_discussed, and techniques_used."
+  
+  - task: "AI Therapist - Mood Check-ins API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created mood check-in endpoints: POST /api/therapist/mood-checkin (create quick mood check-in with 1-10 rating, emotions array, optional note), GET /api/therapist/mood-checkins/{user_id} (get user's check-ins with limit parameter, default 30). Separate from mood logs for quick emotional tracking during therapy sessions."
+  
+  - task: "AI Therapist - Insights & Analytics API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/therapist/insights/{user_id} endpoint that generates AI-powered comprehensive therapeutic insights using Gemini. Analyzes: (1) Last 10 therapy sessions, (2) Last 20 therapy conversations, (3) Last 15 mood logs, (4) Last 10 mood check-ins. Returns detailed AI report including: overall progress assessment, key themes, strengths identified, areas for growth, recommended CBT/DBT/mindfulness techniques, and personalized encouragement. Provides stats: total_sessions, total_conversations, total_mood_logs, total_checkins."
 
 frontend:
   - task: "Analytics Dashboard Page"
