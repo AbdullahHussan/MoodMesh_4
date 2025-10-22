@@ -30,6 +30,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [achievementCount, setAchievementCount] = useState(0);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("moodmesh_user");
@@ -41,6 +42,7 @@ const Dashboard = () => {
     const userData = JSON.parse(storedUser);
     setUser(userData);
     fetchProfile(userData.user_id);
+    fetchAchievementCount(userData.user_id);
   }, [navigate]);
 
   const fetchProfile = async (userId) => {
@@ -49,6 +51,15 @@ const Dashboard = () => {
       setProfile(response.data);
     } catch (error) {
       console.error("Failed to fetch profile", error);
+    }
+  };
+
+  const fetchAchievementCount = async (userId) => {
+    try {
+      const response = await axios.get(`${API}/achievements/${userId}`);
+      setAchievementCount(response.data.earned_count);
+    } catch (error) {
+      console.error("Failed to fetch achievement count", error);
     }
   };
 
