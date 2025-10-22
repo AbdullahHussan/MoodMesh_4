@@ -225,8 +225,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Meditation & Breathing Page"
-    - "Meditation Navigation Card"
+    - "Resource Library API"
+    - "Resource Library Page"
+    - "Resource Library Navigation Card"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
