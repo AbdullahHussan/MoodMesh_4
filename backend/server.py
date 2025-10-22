@@ -2946,9 +2946,6 @@ async def leave_room(sid, data):
 
 
 
-
-
-
 # Include router
 app.include_router(api_router)
 
