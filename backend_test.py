@@ -791,6 +791,515 @@ class MoodMeshMeditationTest:
             print("⚠️  Some meditation tests FAILED!")
             return False
 
+class MoodMeshResourceLibraryTest:
+    def __init__(self):
+        self.base_url = BACKEND_URL
+        self.test_user_id = "test_user_123"
+        self.test_username = f"resource_test_user_{int(time.time())}"
+        self.test_password = "testpass123"
+        
+    def log_test(self, test_name, status, message=""):
+        """Log test results"""
+        status_symbol = "✅" if status else "❌"
+        print(f"{status_symbol} {test_name}: {message}")
+        
+    def register_test_user(self):
+        """Register a test user for resource testing"""
+        try:
+            response = requests.post(f"{self.base_url}/auth/register", json={
+                "username": self.test_username,
+                "password": self.test_password
+            })
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.test_user_id = data["user_id"]
+                self.log_test("Resource User Registration", True, f"Created user: {self.test_username}")
+                return True
+            else:
+                self.log_test("Resource User Registration", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Resource User Registration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_all_resources(self):
+        """Test GET /api/resources - Get all resources"""
+        try:
+            response = requests.get(f"{self.base_url}/resources")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should return a list
+                if not isinstance(data, list):
+                    self.log_test("Get All Resources - Type", False, "Response should be a list")
+                    return False
+                
+                # Should return 13 resources as per seeded data
+                if len(data) != 13:
+                    self.log_test("Get All Resources - Count", False, f"Expected 13 resources, got {len(data)}")
+                    return False
+                
+                # Check first resource structure
+                if data:
+                    first_resource = data[0]
+                    required_keys = ["id", "title", "category", "description", "content", "tags", "views", "bookmarks"]
+                    missing_keys = [key for key in required_keys if key not in first_resource]
+                    
+                    if missing_keys:
+                        self.log_test("Get All Resources - Structure", False, f"Missing keys: {missing_keys}")
+                        return False
+                
+                self.log_test("Get All Resources", True, f"Successfully returned {len(data)} resources")
+                return True
+            else:
+                self.log_test("Get All Resources", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get All Resources", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_resources_with_filters(self):
+        """Test GET /api/resources with various filters"""
+        try:
+            # Test category filter: conditions
+            response = requests.get(f"{self.base_url}/resources?category=conditions")
+            if response.status_code == 200:
+                data = response.json()
+                for resource in data:
+                    if resource["category"] != "conditions":
+                        self.log_test("Filter by Category (conditions)", False, f"Found non-conditions resource: {resource['category']}")
+                        return False
+                self.log_test("Filter by Category (conditions)", True, f"Found {len(data)} conditions resources")
+            else:
+                self.log_test("Filter by Category (conditions)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Test category filter: techniques
+            response = requests.get(f"{self.base_url}/resources?category=techniques")
+            if response.status_code == 200:
+                data = response.json()
+                for resource in data:
+                    if resource["category"] != "techniques":
+                        self.log_test("Filter by Category (techniques)", False, f"Found non-techniques resource: {resource['category']}")
+                        return False
+                self.log_test("Filter by Category (techniques)", True, f"Found {len(data)} techniques resources")
+            else:
+                self.log_test("Filter by Category (techniques)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Test category filter: videos
+            response = requests.get(f"{self.base_url}/resources?category=videos")
+            if response.status_code == 200:
+                data = response.json()
+                for resource in data:
+                    if resource["category"] != "videos":
+                        self.log_test("Filter by Category (videos)", False, f"Found non-videos resource: {resource['category']}")
+                        return False
+                self.log_test("Filter by Category (videos)", True, f"Found {len(data)} videos resources")
+            else:
+                self.log_test("Filter by Category (videos)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Test subcategory filter: anxiety
+            response = requests.get(f"{self.base_url}/resources?subcategory=anxiety")
+            if response.status_code == 200:
+                data = response.json()
+                for resource in data:
+                    if resource.get("subcategory") != "anxiety":
+                        self.log_test("Filter by Subcategory (anxiety)", False, f"Found non-anxiety resource: {resource.get('subcategory')}")
+                        return False
+                self.log_test("Filter by Subcategory (anxiety)", True, f"Found {len(data)} anxiety resources")
+            else:
+                self.log_test("Filter by Subcategory (anxiety)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Test content_type filter: article
+            response = requests.get(f"{self.base_url}/resources?content_type=article")
+            if response.status_code == 200:
+                data = response.json()
+                for resource in data:
+                    if resource["content_type"] != "article":
+                        self.log_test("Filter by Content Type (article)", False, f"Found non-article resource: {resource['content_type']}")
+                        return False
+                self.log_test("Filter by Content Type (article)", True, f"Found {len(data)} article resources")
+            else:
+                self.log_test("Filter by Content Type (article)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Test search filter: depression
+            response = requests.get(f"{self.base_url}/resources?search=depression")
+            if response.status_code == 200:
+                data = response.json()
+                # Should find resources containing "depression" in title, description, or tags
+                if len(data) == 0:
+                    self.log_test("Search Filter (depression)", False, "No resources found for 'depression' search")
+                    return False
+                self.log_test("Search Filter (depression)", True, f"Found {len(data)} resources matching 'depression'")
+            else:
+                self.log_test("Search Filter (depression)", False, f"Status: {response.status_code}")
+                return False
+            
+            return True
+        except Exception as e:
+            self.log_test("Resource Filters", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_single_resource(self):
+        """Test GET /api/resources/{resource_id} - Get single resource"""
+        try:
+            # First get all resources to find a valid ID
+            response = requests.get(f"{self.base_url}/resources")
+            if response.status_code != 200:
+                self.log_test("Get Single Resource - Setup", False, "Failed to get resources list")
+                return False
+            
+            resources = response.json()
+            if not resources:
+                self.log_test("Get Single Resource - Setup", False, "No resources available")
+                return False
+            
+            # Test with valid resource ID
+            test_resource_id = resources[0]["id"]
+            initial_views = resources[0].get("views", 0)
+            
+            response = requests.get(f"{self.base_url}/resources/{test_resource_id}")
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check structure
+                required_keys = ["id", "title", "category", "description", "content", "views"]
+                missing_keys = [key for key in required_keys if key not in data]
+                if missing_keys:
+                    self.log_test("Get Single Resource - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Check if view count incremented
+                if data["views"] != initial_views + 1:
+                    self.log_test("Get Single Resource - View Count", False, f"Expected views {initial_views + 1}, got {data['views']}")
+                    return False
+                
+                self.log_test("Get Single Resource (Valid ID)", True, f"Successfully retrieved resource: {data['title']}")
+            else:
+                self.log_test("Get Single Resource (Valid ID)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Test with invalid resource ID
+            response = requests.get(f"{self.base_url}/resources/invalid-resource-id")
+            if response.status_code == 404:
+                self.log_test("Get Single Resource (Invalid ID)", True, "Correctly returns 404 for invalid ID")
+            else:
+                self.log_test("Get Single Resource (Invalid ID)", False, f"Expected 404, got {response.status_code}")
+                return False
+            
+            return True
+        except Exception as e:
+            self.log_test("Get Single Resource", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_categories_summary(self):
+        """Test GET /api/resources/categories/summary - Get category counts"""
+        try:
+            response = requests.get(f"{self.base_url}/resources/categories/summary")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check structure
+                expected_categories = ["conditions", "techniques", "videos", "reading", "myths"]
+                missing_categories = [cat for cat in expected_categories if cat not in data]
+                if missing_categories:
+                    self.log_test("Categories Summary - Structure", False, f"Missing categories: {missing_categories}")
+                    return False
+                
+                # Check that counts are non-negative integers
+                for category, count in data.items():
+                    if not isinstance(count, int) or count < 0:
+                        self.log_test("Categories Summary - Count Type", False, f"Invalid count for {category}: {count}")
+                        return False
+                
+                # Total should be 13 (as per seeded data)
+                total_count = sum(data.values())
+                if total_count != 13:
+                    self.log_test("Categories Summary - Total Count", False, f"Expected total 13, got {total_count}")
+                    return False
+                
+                self.log_test("Categories Summary", True, f"Successfully returned category counts: {data}")
+                return True
+            else:
+                self.log_test("Categories Summary", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Categories Summary", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_bookmark_resource(self):
+        """Test POST /api/resources/bookmark - Bookmark a resource"""
+        try:
+            # First get a resource to bookmark
+            response = requests.get(f"{self.base_url}/resources")
+            if response.status_code != 200:
+                self.log_test("Bookmark Resource - Setup", False, "Failed to get resources")
+                return False
+            
+            resources = response.json()
+            if not resources:
+                self.log_test("Bookmark Resource - Setup", False, "No resources available")
+                return False
+            
+            test_resource_id = resources[0]["id"]
+            initial_bookmarks = resources[0].get("bookmarks", 0)
+            
+            # Test creating a bookmark
+            bookmark_data = {
+                "user_id": self.test_user_id,
+                "resource_id": test_resource_id
+            }
+            
+            response = requests.post(f"{self.base_url}/resources/bookmark", json=bookmark_data)
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "message" not in data or "success" not in data:
+                    self.log_test("Bookmark Resource - Response Structure", False, "Missing message or success field")
+                    return False
+                
+                if not data["success"]:
+                    self.log_test("Bookmark Resource - Success Flag", False, "Success flag is False")
+                    return False
+                
+                self.log_test("Bookmark Resource (First Time)", True, f"Successfully bookmarked resource")
+            else:
+                self.log_test("Bookmark Resource (First Time)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+            # Test bookmarking the same resource again (should return "Already bookmarked")
+            response = requests.post(f"{self.base_url}/resources/bookmark", json=bookmark_data)
+            if response.status_code == 200:
+                data = response.json()
+                if "Already bookmarked" in data.get("message", ""):
+                    self.log_test("Bookmark Resource (Duplicate)", True, "Correctly handles duplicate bookmark")
+                else:
+                    self.log_test("Bookmark Resource (Duplicate)", False, f"Unexpected message: {data.get('message')}")
+                    return False
+            else:
+                self.log_test("Bookmark Resource (Duplicate)", False, f"Status: {response.status_code}")
+                return False
+            
+            # Verify bookmark count incremented on the resource
+            response = requests.get(f"{self.base_url}/resources/{test_resource_id}")
+            if response.status_code == 200:
+                resource_data = response.json()
+                if resource_data["bookmarks"] == initial_bookmarks + 1:
+                    self.log_test("Bookmark Count Increment", True, f"Bookmark count correctly incremented to {resource_data['bookmarks']}")
+                else:
+                    self.log_test("Bookmark Count Increment", False, f"Expected {initial_bookmarks + 1}, got {resource_data['bookmarks']}")
+                    return False
+            else:
+                self.log_test("Bookmark Count Increment", False, "Failed to verify bookmark count")
+                return False
+            
+            return True
+        except Exception as e:
+            self.log_test("Bookmark Resource", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_user_bookmarks(self):
+        """Test GET /api/resources/bookmarks/{user_id} - Get user's bookmarks"""
+        try:
+            # Test with user who has bookmarks (from previous test)
+            response = requests.get(f"{self.base_url}/resources/bookmarks/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should return a list
+                if not isinstance(data, list):
+                    self.log_test("Get User Bookmarks - Type", False, "Response should be a list")
+                    return False
+                
+                # Should have at least 1 bookmark from previous test
+                if len(data) == 0:
+                    self.log_test("Get User Bookmarks - Count", False, "Expected at least 1 bookmark")
+                    return False
+                
+                # Check first bookmark structure (should be full resource details)
+                first_bookmark = data[0]
+                required_keys = ["id", "title", "category", "description", "content"]
+                missing_keys = [key for key in required_keys if key not in first_bookmark]
+                if missing_keys:
+                    self.log_test("Get User Bookmarks - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                self.log_test("Get User Bookmarks (With Data)", True, f"Successfully returned {len(data)} bookmarked resources")
+            else:
+                self.log_test("Get User Bookmarks (With Data)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+            # Test with user who has no bookmarks
+            empty_user_id = "user_with_no_bookmarks"
+            response = requests.get(f"{self.base_url}/resources/bookmarks/{empty_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list) and len(data) == 0:
+                    self.log_test("Get User Bookmarks (Empty)", True, "Correctly returns empty array for user with no bookmarks")
+                else:
+                    self.log_test("Get User Bookmarks (Empty)", False, f"Expected empty array, got: {data}")
+                    return False
+            else:
+                self.log_test("Get User Bookmarks (Empty)", False, f"Status: {response.status_code}")
+                return False
+            
+            return True
+        except Exception as e:
+            self.log_test("Get User Bookmarks", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_remove_bookmark(self):
+        """Test DELETE /api/resources/bookmark/{user_id}/{resource_id} - Remove bookmark"""
+        try:
+            # First get user's bookmarks to find one to remove
+            response = requests.get(f"{self.base_url}/resources/bookmarks/{self.test_user_id}")
+            if response.status_code != 200:
+                self.log_test("Remove Bookmark - Setup", False, "Failed to get user bookmarks")
+                return False
+            
+            bookmarks = response.json()
+            if not bookmarks:
+                self.log_test("Remove Bookmark - Setup", False, "No bookmarks to remove")
+                return False
+            
+            test_resource_id = bookmarks[0]["id"]
+            initial_bookmarks = bookmarks[0].get("bookmarks", 0)
+            
+            # Test removing an existing bookmark
+            response = requests.delete(f"{self.base_url}/resources/bookmark/{self.test_user_id}/{test_resource_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "message" not in data or "success" not in data:
+                    self.log_test("Remove Bookmark - Response Structure", False, "Missing message or success field")
+                    return False
+                
+                if not data["success"]:
+                    self.log_test("Remove Bookmark - Success Flag", False, "Success flag is False")
+                    return False
+                
+                self.log_test("Remove Bookmark (Existing)", True, "Successfully removed bookmark")
+            else:
+                self.log_test("Remove Bookmark (Existing)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+            # Verify bookmark count decremented on the resource
+            response = requests.get(f"{self.base_url}/resources/{test_resource_id}")
+            if response.status_code == 200:
+                resource_data = response.json()
+                if resource_data["bookmarks"] == initial_bookmarks - 1:
+                    self.log_test("Bookmark Count Decrement", True, f"Bookmark count correctly decremented to {resource_data['bookmarks']}")
+                else:
+                    self.log_test("Bookmark Count Decrement", False, f"Expected {initial_bookmarks - 1}, got {resource_data['bookmarks']}")
+                    return False
+            else:
+                self.log_test("Bookmark Count Decrement", False, "Failed to verify bookmark count")
+                return False
+            
+            # Test removing non-existent bookmark (should return 404)
+            response = requests.delete(f"{self.base_url}/resources/bookmark/{self.test_user_id}/{test_resource_id}")
+            
+            if response.status_code == 404:
+                self.log_test("Remove Bookmark (Non-existent)", True, "Correctly returns 404 for non-existent bookmark")
+            else:
+                self.log_test("Remove Bookmark (Non-existent)", False, f"Expected 404, got {response.status_code}")
+                return False
+            
+            return True
+        except Exception as e:
+            self.log_test("Remove Bookmark", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_resource_endpoints_availability(self):
+        """Test if all resource endpoints are available"""
+        try:
+            endpoints = [
+                "/resources",
+                "/resources/categories/summary",
+                f"/resources/bookmarks/{str(uuid.uuid4())}"
+            ]
+            
+            all_available = True
+            for endpoint in endpoints:
+                response = requests.get(f"{self.base_url}{endpoint}")
+                if response.status_code not in [200, 404]:
+                    self.log_test(f"Endpoint {endpoint}", False, f"Status: {response.status_code}")
+                    all_available = False
+            
+            if all_available:
+                self.log_test("Resource Endpoints Availability", True, "All endpoints are accessible")
+                return True
+            else:
+                self.log_test("Resource Endpoints Availability", False, "Some endpoints are not accessible")
+                return False
+        except Exception as e:
+            self.log_test("Resource Endpoints Availability", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_all_tests(self):
+        """Run all resource library tests"""
+        print("=" * 60)
+        print("📚 MOODMESH RESOURCE LIBRARY BACKEND TESTING")
+        print("=" * 60)
+        
+        results = {}
+        
+        # Test endpoint availability first
+        results["endpoints_availability"] = self.test_resource_endpoints_availability()
+        
+        # Test basic resource retrieval
+        results["get_all_resources"] = self.test_get_all_resources()
+        results["resource_filters"] = self.test_get_resources_with_filters()
+        results["single_resource"] = self.test_get_single_resource()
+        results["categories_summary"] = self.test_categories_summary()
+        
+        # Register test user for bookmark tests
+        if self.register_test_user():
+            results["user_registration"] = True
+            
+            # Test bookmark functionality
+            results["bookmark_resource"] = self.test_bookmark_resource()
+            results["get_user_bookmarks"] = self.test_get_user_bookmarks()
+            results["remove_bookmark"] = self.test_remove_bookmark()
+        else:
+            results["user_registration"] = False
+            results["bookmark_resource"] = False
+            results["get_user_bookmarks"] = False
+            results["remove_bookmark"] = False
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 RESOURCE LIBRARY TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in results.values() if result)
+        total = len(results)
+        
+        for test_name, result in results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} {test_name.replace('_', ' ').title()}")
+        
+        print(f"\n🎯 Overall: {passed}/{total} tests passed")
+        
+        if passed == total:
+            print("🎉 All resource library tests PASSED!")
+            return True
+        else:
+            print("⚠️  Some resource library tests FAILED!")
+            return False
+
 if __name__ == "__main__":
     print("🧪 RUNNING MOODMESH BACKEND TESTS")
     print("=" * 60)
@@ -806,10 +1315,16 @@ if __name__ == "__main__":
     meditation_success = meditation_tester.run_all_tests()
     
     print("\n" + "=" * 60)
+    
+    # Run Resource Library Tests
+    resource_tester = MoodMeshResourceLibraryTest()
+    resource_success = resource_tester.run_all_tests()
+    
+    print("\n" + "=" * 60)
     print("🏁 FINAL RESULTS")
     print("=" * 60)
     
-    if analytics_success and meditation_success:
+    if analytics_success and meditation_success and resource_success:
         print("🎉 ALL TESTS PASSED! Backend is working correctly.")
         exit(0)
     else:
@@ -817,4 +1332,6 @@ if __name__ == "__main__":
             print("❌ Analytics tests failed")
         if not meditation_success:
             print("❌ Meditation tests failed")
+        if not resource_success:
+            print("❌ Resource Library tests failed")
         exit(1)
