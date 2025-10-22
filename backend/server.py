@@ -100,15 +100,46 @@ class ChatMessage(BaseModel):
 class TherapistChatMessage(BaseModel):
     user_id: str
     message: str
+    session_id: Optional[str] = None
+
+class TherapeuticTechnique(BaseModel):
+    technique_name: str
+    technique_type: str  # "CBT", "DBT", "Mindfulness", etc.
+    description: str
+    steps: List[str]
 
 class TherapistChatResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
+    session_id: str
     user_message: str
     therapist_response: str
     crisis_detected: bool = False
     crisis_severity: Optional[str] = None
+    suggested_techniques: List[TherapeuticTechnique] = []
+    mood_context: Optional[dict] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TherapySession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    session_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    session_start: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    session_end: Optional[datetime] = None
+    message_count: int = 0
+    topics_discussed: List[str] = []
+    techniques_used: List[str] = []
+    mood_at_start: Optional[str] = None
+    mood_at_end: Optional[str] = None
+
+class MoodCheckIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    check_in_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    mood_rating: int  # 1-10 scale
+    emotions: List[str]
+    note: Optional[str] = None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CommunityCreate(BaseModel):
