@@ -197,6 +197,46 @@ class CrisisDetectionResponse(BaseModel):
     detected_keywords: List[str]
     follow_up_question: Optional[str] = None
 
+# Meditation & Breathing Exercise Models
+class BreathingExercise(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    duration: int  # in seconds
+    pattern: str  # e.g., "4-4-4-4" for box breathing
+    description: str
+    instructions: List[str]
+    benefits: List[str]
+
+class MeditationContent(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    title: str
+    duration: int  # in minutes
+    category: str  # stress_relief, sleep, focus, anxiety
+    description: str
+    instructions: List[str]
+    goal: str
+
+class MeditationSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    session_type: str  # "breathing" or "meditation"
+    content_id: str
+    duration: int  # in seconds or minutes
+    completed: bool = False
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MeditationSessionStart(BaseModel):
+    user_id: str
+    session_type: str
+    content_id: str
+    duration: int
+
+class MeditationSessionComplete(BaseModel):
+    session_id: str
+
 # JWT Helper Functions
 def create_access_token(data: dict):
     to_encode = data.copy()
