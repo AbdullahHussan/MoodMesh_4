@@ -288,6 +288,30 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Added Resource Library card to dashboard with BookOpen icon and route to /resources page"
+  
+  - task: "Music Therapy Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MusicTherapy.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive Music & Sound Therapy page with 5 tabs: (1) For You - AI-powered recommendations based on mood logs, shows mood analysis, built-in audio suggestions, and Spotify recommendations, (2) Browse - Spotify search with mood category buttons (Calming, Energizing, Focus, Sleep), (3) Sounds - Built-in audio library organized by category (Nature sounds, White noise, Binaural beats) with play/pause controls, (4) Journal - Audio journaling with text input, voice recording (Web Audio API), background music selection, saves with 3 wellness stars reward, (5) History - Listening history with source icons. Features: Spotify OAuth login, premium status display, currently playing bar, audio player with HTML5 Audio API, voice recording with MediaRecorder API."
+  
+  - task: "Music Therapy Navigation Card"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Music & Sound Therapy card to dashboard with Music icon and gradient background. Added route to /music page. Imported MusicTherapy component."
 
 metadata:
   created_by: "main_agent"
