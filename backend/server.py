@@ -1991,6 +1991,900 @@ async def get_meditation_recommendations(user_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ===== RESOURCE LIBRARY ENDPOINTS =====
+
+# Comprehensive educational content
+EDUCATIONAL_RESOURCES = [
+    # MENTAL HEALTH CONDITIONS - Articles
+    {
+        "id": "anxiety-understanding",
+        "title": "Understanding Anxiety Disorders",
+        "category": "conditions",
+        "subcategory": "anxiety",
+        "content_type": "article",
+        "description": "A comprehensive guide to understanding anxiety disorders, their symptoms, causes, and treatment options.",
+        "content": """# Understanding Anxiety Disorders
+
+Anxiety disorders are among the most common mental health conditions, affecting millions of people worldwide. While it's normal to feel anxious occasionally, anxiety disorders involve more than temporary worry or fear.
+
+## Types of Anxiety Disorders
+
+**Generalized Anxiety Disorder (GAD)**: Persistent and excessive worry about various aspects of daily life.
+
+**Panic Disorder**: Recurring unexpected panic attacks - sudden periods of intense fear that may include heart palpitations, sweating, and feelings of impending doom.
+
+**Social Anxiety Disorder**: Intense fear of social situations and being judged by others.
+
+**Specific Phobias**: Extreme fear of specific objects or situations (heights, flying, spiders, etc.).
+
+## Common Symptoms
+
+- Excessive worrying
+- Restlessness or feeling on edge
+- Difficulty concentrating
+- Sleep disturbances
+- Physical symptoms: rapid heartbeat, sweating, trembling, fatigue
+
+## Causes
+
+Anxiety disorders can result from a combination of factors:
+- Genetics and family history
+- Brain chemistry
+- Life experiences and trauma
+- Chronic stress
+- Other medical conditions
+
+## Treatment Options
+
+Anxiety disorders are highly treatable through:
+- Cognitive Behavioral Therapy (CBT)
+- Exposure therapy
+- Medication (SSRIs, SNRIs, benzodiazepines)
+- Mindfulness and relaxation techniques
+- Lifestyle changes (exercise, sleep, nutrition)
+
+## When to Seek Help
+
+If anxiety interferes with daily activities, relationships, or quality of life, it's important to seek professional help. Early intervention leads to better outcomes.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 8,
+        "difficulty": "beginner",
+        "tags": ["anxiety", "mental health", "disorders", "treatment"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "depression-guide",
+        "title": "Depression: Symptoms, Causes, and Hope",
+        "category": "conditions",
+        "subcategory": "depression",
+        "content_type": "article",
+        "description": "Everything you need to know about depression, from recognizing symptoms to finding effective treatment.",
+        "content": """# Depression: Symptoms, Causes, and Hope
+
+Depression is more than just feeling sad or going through a rough patch. It's a serious mental health condition that affects how you think, feel, and handle daily activities.
+
+## Understanding Depression
+
+Clinical depression (Major Depressive Disorder) is characterized by persistent feelings of sadness, hopelessness, and loss of interest in activities once enjoyed.
+
+## Common Symptoms
+
+**Emotional Symptoms:**
+- Persistent sad, anxious, or empty mood
+- Feelings of hopelessness or pessimism
+- Irritability
+- Loss of interest in hobbies and activities
+- Feelings of guilt or worthlessness
+
+**Physical Symptoms:**
+- Changes in appetite or weight
+- Sleep disturbances (insomnia or oversleeping)
+- Fatigue and decreased energy
+- Physical aches and pains
+- Difficulty concentrating and making decisions
+
+## Types of Depression
+
+- **Major Depressive Disorder**: Severe symptoms that interfere with daily life
+- **Persistent Depressive Disorder**: Long-lasting depression (2+ years)
+- **Seasonal Affective Disorder (SAD)**: Depression during specific seasons
+- **Postpartum Depression**: Occurs after childbirth
+- **Bipolar Depression**: Part of bipolar disorder cycles
+
+## Causes and Risk Factors
+
+- Biological factors and brain chemistry
+- Genetics and family history
+- Traumatic life events
+- Chronic stress and medical conditions
+- Substance use
+
+## Treatment and Recovery
+
+**Psychotherapy:**
+- Cognitive Behavioral Therapy (CBT)
+- Interpersonal Therapy (IPT)
+- Problem-solving therapy
+
+**Medication:**
+- Antidepressants (SSRIs, SNRIs, etc.)
+- May take 2-4 weeks to show effects
+
+**Lifestyle Changes:**
+- Regular exercise
+- Healthy sleep habits
+- Social connection
+- Stress management techniques
+
+## Hope and Recovery
+
+Depression is treatable. With proper care, the vast majority of people with depression improve. Recovery is possible, and many people go on to lead fulfilling lives.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 10,
+        "difficulty": "beginner",
+        "tags": ["depression", "mental health", "treatment", "symptoms"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "ptsd-overview",
+        "title": "PTSD: Understanding Post-Traumatic Stress",
+        "category": "conditions",
+        "subcategory": "ptsd",
+        "content_type": "article",
+        "description": "Learn about PTSD, its symptoms, triggers, and effective treatment approaches for trauma recovery.",
+        "content": """# Understanding PTSD (Post-Traumatic Stress Disorder)
+
+PTSD is a mental health condition triggered by experiencing or witnessing a terrifying event. It's a natural response to trauma that, for some people, doesn't resolve on its own.
+
+## What Causes PTSD?
+
+Traumatic events that may lead to PTSD include:
+- Combat exposure
+- Physical or sexual assault
+- Accidents
+- Natural disasters
+- Childhood abuse
+- Witnessing violence or death
+- Medical emergencies
+
+## Core Symptoms
+
+**Re-experiencing:**
+- Flashbacks and intrusive memories
+- Nightmares
+- Severe emotional distress when reminded of trauma
+
+**Avoidance:**
+- Avoiding thoughts, feelings, or conversations about the trauma
+- Avoiding places, activities, or people that remind you of the event
+
+**Negative Changes in Thinking and Mood:**
+- Negative thoughts about yourself or the world
+- Feelings of detachment
+- Inability to experience positive emotions
+- Memory problems related to the trauma
+
+**Changes in Physical and Emotional Reactions:**
+- Being easily startled
+- Hypervigilance
+- Self-destructive behavior
+- Sleep problems
+- Difficulty concentrating
+
+## Treatment Options
+
+**Trauma-Focused Therapies:**
+- Cognitive Processing Therapy (CPT)
+- Prolonged Exposure Therapy
+- Eye Movement Desensitization and Reprocessing (EMDR)
+
+**Medications:**
+- SSRIs and SNRIs for depression and anxiety symptoms
+- Sleep medications if needed
+
+**Complementary Approaches:**
+- Mindfulness and meditation
+- Yoga and physical exercise
+- Support groups
+
+## Recovery is Possible
+
+While PTSD can be debilitating, effective treatments exist. Many people with PTSD recover fully with proper care and support. Healing is not linear, but progress is achievable.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 12,
+        "difficulty": "intermediate",
+        "tags": ["ptsd", "trauma", "mental health", "treatment"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    
+    # CBT TECHNIQUES
+    {
+        "id": "cbt-thought-records",
+        "title": "CBT: Thought Record Exercise",
+        "category": "techniques",
+        "subcategory": "cbt",
+        "content_type": "exercise",
+        "description": "Learn to identify and challenge negative thought patterns using cognitive behavioral therapy techniques.",
+        "content": """# Thought Record Exercise (CBT)
+
+Thought records are a fundamental CBT tool for identifying and challenging negative automatic thoughts.
+
+## How to Use a Thought Record
+
+**Step 1: Identify the Situation**
+When you notice a change in mood, write down what happened:
+- Where were you?
+- Who were you with?
+- What were you doing?
+
+**Step 2: Notice Your Emotions**
+Identify and rate the emotions you felt (0-100%):
+- Sad, anxious, angry, frustrated, etc.
+
+**Step 3: Identify Automatic Thoughts**
+What went through your mind?
+- "I'm such a failure"
+- "Everyone thinks I'm stupid"
+- "This always happens to me"
+
+**Step 4: Find the Evidence**
+Evidence FOR the thought:
+- What facts support this thought?
+
+Evidence AGAINST the thought:
+- What facts contradict this thought?
+- Would I say this to a friend?
+
+**Step 5: Generate Alternative Thoughts**
+Create a more balanced perspective:
+- What's another way to view this situation?
+- What would I tell a friend in this situation?
+
+**Step 6: Re-rate Your Emotion**
+After examining the evidence, re-rate your emotion (0-100%)
+Notice if the intensity has decreased.
+
+## Example
+
+**Situation**: Sent a text to friend, no response after 2 hours
+
+**Emotion**: Anxious (80%), Sad (60%)
+
+**Automatic Thought**: "They're ignoring me. They must hate me."
+
+**Evidence For**: They haven't responded yet
+
+**Evidence Against**: 
+- They're usually busy during work hours
+- They've been a good friend for years
+- They responded yesterday
+- I sometimes take hours to respond too
+
+**Alternative Thought**: "They're probably busy. They'll respond when they can. This doesn't mean they hate me."
+
+**Re-rated Emotion**: Anxious (30%), Sad (20%)
+
+## Practice Daily
+
+Use thought records whenever you notice intense emotions. Over time, this process becomes automatic.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 15,
+        "difficulty": "beginner",
+        "tags": ["cbt", "cognitive therapy", "exercises", "thought patterns"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "dbt-distress-tolerance",
+        "title": "DBT: Distress Tolerance Skills",
+        "category": "techniques",
+        "subcategory": "dbt",
+        "content_type": "exercise",
+        "description": "Master DBT distress tolerance techniques to survive crisis situations without making them worse.",
+        "content": """# DBT Distress Tolerance Skills
+
+Distress tolerance skills help you cope with painful situations when you can't make things better right away. The goal is to get through a crisis without making it worse.
+
+## The TIPP Skills (For Intense Emotions)
+
+**T - Temperature**
+Change your body temperature to calm intense emotions:
+- Hold ice cubes in your hands
+- Splash cold water on your face
+- Take a cold shower
+- Hold your breath and put your face in ice water (30 seconds)
+
+**I - Intense Exercise**
+Engage in vigorous physical activity:
+- Run or jog
+- Jump jacks or burpees
+- Dancing
+- Fast-paced walking
+- Boxing
+
+**P - Paced Breathing**
+Slow your breathing:
+- Breathe in for 4 counts
+- Hold for 4 counts
+- Breathe out for 6-8 counts
+- Focus on lengthening your exhale
+
+**P - Paired Muscle Relaxation**
+Tense and release muscle groups while breathing:
+- Breathe in while tensing muscles (5 seconds)
+- Breathe out while releasing tension
+- Notice the difference
+
+## The ACCEPTS Skills (Distraction)
+
+**A - Activities**: Engage in activities that require concentration
+**C - Contributing**: Help others or volunteer
+**C - Comparisons**: Compare to times you've coped before
+**E - Emotions**: Create opposite emotions (watch comedy when sad)
+**P - Pushing away**: Put the situation out of your mind temporarily
+**T - Thoughts**: Occupy your mind with other thoughts (puzzles, counting)
+**S - Sensations**: Use strong sensations (hold ice, listen to loud music)
+
+## IMPROVE the Moment
+
+**I - Imagery**: Imagine peaceful scenes
+**M - Meaning**: Find purpose in your pain
+**P - Prayer**: Use prayer or meditation
+**R - Relaxation**: Practice relaxation techniques
+**O - One thing**: Focus on the present moment
+**V - Vacation**: Take a brief mental or physical break
+**E - Encouragement**: Give yourself supportive self-talk
+
+## Self-Soothing with Five Senses
+
+**Vision**: Look at beautiful images
+**Hearing**: Listen to soothing music
+**Smell**: Use calming scents (lavender, vanilla)
+**Taste**: Savor flavors mindfully
+**Touch**: Take a warm bath, pet an animal
+
+## When to Use These Skills
+
+- During a crisis
+- When emotions feel overwhelming
+- When you can't solve the problem immediately
+- When you need to prevent impulsive actions
+
+Remember: These skills don't solve problems, but they help you survive the moment without making things worse.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 20,
+        "difficulty": "intermediate",
+        "tags": ["dbt", "distress tolerance", "crisis management", "coping skills"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    
+    # VIDEO RESOURCES
+    {
+        "id": "anxiety-management-video",
+        "title": "5 Evidence-Based Strategies for Managing Anxiety",
+        "category": "videos",
+        "subcategory": "anxiety",
+        "content_type": "video",
+        "description": "A mental health professional explains practical, science-backed techniques for reducing anxiety.",
+        "content": "This video covers grounding techniques, cognitive restructuring, exposure principles, and lifestyle factors that reduce anxiety.",
+        "author": "Dr. Sarah Johnson, Clinical Psychologist",
+        "source_url": "https://www.youtube.com/watch?v=WWloIAQpMcQ",
+        "duration_minutes": 15,
+        "difficulty": "beginner",
+        "tags": ["anxiety", "video", "coping strategies", "evidence-based"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "depression-recovery-video",
+        "title": "The Science of Depression and Recovery",
+        "category": "videos",
+        "subcategory": "depression",
+        "content_type": "video",
+        "description": "Understanding the neuroscience behind depression and what research shows about effective treatments.",
+        "content": "Learn about neuroplasticity, the role of neurotransmitters, and how different treatments work at the brain level.",
+        "author": "Dr. Michael Chen, Neuroscientist",
+        "source_url": "https://www.youtube.com/watch?v=NOAgplgTxfc",
+        "duration_minutes": 18,
+        "difficulty": "intermediate",
+        "tags": ["depression", "video", "neuroscience", "treatment"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "mindfulness-basics-video",
+        "title": "Introduction to Mindfulness Meditation",
+        "category": "videos",
+        "subcategory": "mindfulness",
+        "content_type": "video",
+        "description": "A beginner-friendly guide to mindfulness practice and its mental health benefits.",
+        "content": "Practical instruction on mindfulness techniques, common challenges, and tips for building a sustainable practice.",
+        "author": "Dr. Lisa Martinez, Mindfulness Teacher",
+        "source_url": "https://www.youtube.com/watch?v=6p_yaNFSYao",
+        "duration_minutes": 12,
+        "difficulty": "beginner",
+        "tags": ["mindfulness", "meditation", "video", "beginners"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    
+    # READING RECOMMENDATIONS
+    {
+        "id": "book-feeling-good",
+        "title": "Feeling Good: The New Mood Therapy",
+        "category": "reading",
+        "subcategory": "self-help",
+        "content_type": "book",
+        "description": "Dr. David Burns' classic guide to using cognitive behavioral therapy to overcome depression.",
+        "content": """# Feeling Good: The New Mood Therapy
+**Author**: David D. Burns, M.D.
+
+## Overview
+This groundbreaking book introduces cognitive behavioral therapy (CBT) techniques in an accessible format for general readers. It has helped millions understand and overcome depression and anxiety.
+
+## Key Concepts
+
+**Cognitive Distortions**: Learn to identify 10 common thinking errors that fuel negative emotions.
+
+**Mood-Thought Connection**: Understand how thoughts influence feelings and behaviors.
+
+**Practical Exercises**: Hands-on techniques for challenging negative thoughts and building self-esteem.
+
+## What You'll Learn
+- How to identify automatic negative thoughts
+- Techniques for cognitive restructuring
+- Methods for overcoming procrastination
+- Strategies for handling criticism
+- Ways to defeat guilt and build self-esteem
+
+## Who Should Read This
+- People experiencing depression or low mood
+- Those interested in CBT techniques
+- Anyone wanting to improve their emotional well-being
+- Mental health professionals
+
+## Why It's Recommended
+Research has shown that reading and applying the techniques in this book can be as effective as therapy for mild to moderate depression. It's evidence-based, practical, and has stood the test of time since its first publication in 1980.""",
+        "author": "David D. Burns, M.D.",
+        "difficulty": "beginner",
+        "tags": ["cbt", "depression", "self-help", "book recommendation"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "book-body-keeps-score",
+        "title": "The Body Keeps the Score",
+        "category": "reading",
+        "subcategory": "trauma",
+        "content_type": "book",
+        "description": "Dr. Bessel van der Kolk's revolutionary understanding of trauma and pathways to recovery.",
+        "content": """# The Body Keeps the Score: Brain, Mind, and Body in the Healing of Trauma
+**Author**: Bessel van der Kolk, M.D.
+
+## Overview
+A pioneering exploration of how trauma reshapes the brain, mind, and body, and revolutionary approaches to treatment and healing.
+
+## Key Insights
+
+**Trauma's Impact**: How traumatic experiences are stored in the body and affect physical and mental health.
+
+**Beyond Talk Therapy**: Why traditional talk therapy isn't always enough for trauma healing.
+
+**Innovative Treatments**: Exploration of EMDR, neurofeedback, yoga, and other body-based therapies.
+
+## Main Themes
+- The neuroscience of trauma
+- How trauma affects development
+- The role of relationships in healing
+- Body-based approaches to recovery
+- The importance of safety and trust
+
+## What Makes It Important
+This book synthesizes decades of clinical experience and research, offering hope and practical pathways for trauma survivors. It has transformed how mental health professionals understand and treat trauma.
+
+## Who Should Read This
+- Trauma survivors seeking understanding
+- Mental health professionals
+- Anyone interested in the mind-body connection
+- People supporting loved ones with PTSD
+
+## Key Takeaway
+Healing from trauma involves the body and nervous system, not just the mind. Recovery is possible through various pathways that honor this reality.""",
+        "author": "Bessel van der Kolk, M.D.",
+        "difficulty": "intermediate",
+        "tags": ["trauma", "ptsd", "neuroscience", "book recommendation"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    
+    # MYTH-BUSTING
+    {
+        "id": "myth-just-snap-out",
+        "title": "Myth: 'Just Snap Out of It' - Depression is a Choice",
+        "category": "myths",
+        "subcategory": "depression",
+        "content_type": "myth",
+        "description": "Debunking the harmful myth that depression is simply a matter of willpower or attitude.",
+        "content": """# Myth: Depression is Just Sadness - You Can 'Snap Out of It'
+
+## The Myth
+"Depression is just feeling sad. If you tried harder or thought more positively, you'd feel better. It's a choice."
+
+## The Truth
+Depression is a serious medical condition, not a character flaw or a choice. It involves complex changes in brain chemistry, neural pathways, and physical functioning.
+
+## The Science
+
+**Brain Chemistry**: Depression involves alterations in neurotransmitters (serotonin, dopamine, norepinephrine) that regulate mood, sleep, appetite, and energy.
+
+**Structural Changes**: Brain imaging shows actual differences in the hippocampus, prefrontal cortex, and other regions in people with depression.
+
+**Genetic Component**: Depression has a hereditary component, with genetics accounting for about 40% of the risk.
+
+**Physical Illness**: Depression is associated with inflammation, hormonal changes, and other biological factors.
+
+## Why This Myth is Harmful
+
+- **Increases Shame**: Makes people feel they're failing if they can't "just be happy"
+- **Delays Treatment**: People may not seek help, thinking they should handle it alone
+- **Worsens Isolation**: Sufferers may hide their struggles to avoid judgment
+- **Misses Root Causes**: Ignores the biological and environmental factors at play
+
+## What Actually Helps
+
+- **Professional Treatment**: Therapy and/or medication
+- **Lifestyle Changes**: Exercise, sleep, nutrition (as part of treatment, not instead of it)
+- **Support Systems**: Understanding from loved ones
+- **Time and Patience**: Recovery isn't linear and takes time
+- **Self-Compassion**: Treating yourself with kindness, not criticism
+
+## Bottom Line
+Telling someone with depression to "snap out of it" is like telling someone with a broken leg to "just walk normally." Depression is a real illness that requires real treatment, and recovery is possible with proper care.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 6,
+        "difficulty": "beginner",
+        "tags": ["myths", "depression", "mental health", "stigma"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "myth-therapy-weakness",
+        "title": "Myth: Therapy is for Weak People",
+        "category": "myths",
+        "subcategory": "therapy",
+        "content_type": "myth",
+        "description": "Challenging the stigma that seeking mental health treatment is a sign of weakness.",
+        "content": """# Myth: Seeking Therapy Means You're Weak
+
+## The Myth
+"Strong people handle their problems alone. Needing therapy means you're weak, damaged, or can't handle life."
+
+## The Truth
+Seeking therapy is actually a sign of strength, self-awareness, and commitment to personal growth. It takes courage to be vulnerable and work on yourself.
+
+## Reality Check
+
+**Therapy is Self-Care**: Just as you'd see a doctor for physical illness, seeing a therapist for mental health is responsible self-care.
+
+**Everyone Struggles**: Mental health challenges don't discriminate. They affect people of all backgrounds, including the most successful and resilient individuals.
+
+**Professional Athletes Use Coaches**: Top performers in every field seek guidance to improve. Mental health is no different.
+
+**Asking for Help is Strength**: It takes more courage to admit you need support than to struggle in silence.
+
+## Who Goes to Therapy?
+
+- **High Achievers**: CEOs, athletes, artists who want to perform at their best
+- **People in Transition**: Those navigating life changes, careers, relationships
+- **Trauma Survivors**: People working through difficult experiences
+- **Anyone**: People seeking personal growth, better relationships, or stress management
+
+## What Therapy Actually Is
+
+Therapy is a partnership where you work with a trained professional to:
+- Understand yourself better
+- Develop healthier coping strategies
+- Process difficult experiences
+- Build stronger relationships
+- Achieve your goals
+
+## The Real Weakness?
+
+Suffering in silence when help is available. Letting pride or stigma prevent you from improving your life. Staying stuck instead of taking action.
+
+## Notable People Who've Been Open About Therapy
+
+- Dwayne "The Rock" Johnson
+- Lady Gaga
+- Michael Phelps
+- Kristen Bell
+- Prince Harry
+- Many successful people across all fields
+
+## Bottom Line
+Therapy isn't a sign of weakness—it's a tool for becoming the best version of yourself. The strongest people are those who recognize when they need support and have the courage to seek it.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 7,
+        "difficulty": "beginner",
+        "tags": ["myths", "therapy", "stigma", "mental health"],
+        "views": 0,
+        "bookmarks": 0
+    },
+    {
+        "id": "myth-meds-forever",
+        "title": "Myth: Mental Health Medication is Forever",
+        "category": "myths",
+        "subcategory": "medication",
+        "content_type": "myth",
+        "description": "Clarifying misconceptions about psychiatric medication and long-term use.",
+        "content": """# Myth: If You Start Medication, You'll Need It Forever
+
+## The Myth
+"Once you start taking psychiatric medication, you'll be dependent on it for life. Your brain will stop working without it."
+
+## The Truth
+Many people use psychiatric medication temporarily as part of their treatment plan. Others benefit from longer-term use. Both approaches are valid, and the decision depends on individual circumstances.
+
+## The Facts
+
+**Treatment Duration Varies**: 
+- Some people take medication for a few months during a crisis
+- Others use it for several years during recovery
+- Some find long-term use most beneficial for stability
+- All approaches are legitimate
+
+**Not Addictive**: Most psychiatric medications (SSRIs, SNRIs, mood stabilizers) are not addictive, though some require careful discontinuation.
+
+**Combined with Therapy**: Medication often works best alongside therapy, which provides skills that last beyond medication use.
+
+**Individual Response**: Everyone's brain chemistry and life circumstances are different, requiring personalized treatment approaches.
+
+## When Medication Might Be Short-Term
+
+- Situational depression or anxiety
+- Acute stress reactions
+- Postpartum depression
+- First episode of mild to moderate symptoms
+
+## When Long-Term Use Might Be Beneficial
+
+- Recurrent depression or anxiety
+- Bipolar disorder
+- Chronic conditions
+- When symptoms return after discontinuation
+
+## The Medical Model
+
+Think of it like diabetes or high blood pressure:
+- Some people need treatment temporarily
+- Others benefit from ongoing management
+- Both are medical conditions requiring appropriate care
+- No shame in either scenario
+
+## Working with Your Doctor
+
+**Regular Reviews**: Medication should be regularly evaluated for effectiveness and necessity.
+
+**Informed Decisions**: Work with your psychiatrist to make decisions based on your symptoms, history, and preferences.
+
+**Tapering**: If discontinuing, proper tapering under medical supervision prevents withdrawal effects.
+
+## What Actually Happens
+
+Many people successfully taper off medications after:
+- Their symptoms have been stable for an extended period
+- They've developed coping skills through therapy
+- Life stressors have improved
+- They have strong support systems in place
+
+## Bottom Line
+Psychiatric medication is a tool, not a life sentence. The goal is to support your well-being, whether that means short-term use, long-term management, or something in between. You and your doctor can work together to find what's right for you.""",
+        "author": "MoodMesh Clinical Team",
+        "duration_minutes": 8,
+        "difficulty": "intermediate",
+        "tags": ["myths", "medication", "treatment", "mental health"],
+        "views": 0,
+        "bookmarks": 0
+    }
+]
+
+@api_router.get("/resources")
+async def get_all_resources(
+    category: Optional[str] = None,
+    subcategory: Optional[str] = None,
+    content_type: Optional[str] = None,
+    search: Optional[str] = None
+):
+    """Get all educational resources with optional filtering"""
+    try:
+        # Check if resources are already in database
+        count = await db.resources.count_documents({})
+        
+        # Seed resources if not already present
+        if count == 0:
+            for resource in EDUCATIONAL_RESOURCES:
+                doc = resource.copy()
+                doc['created_at'] = datetime.now(timezone.utc).isoformat()
+                await db.resources.insert_one(doc)
+        
+        # Build query
+        query = {}
+        if category:
+            query['category'] = category
+        if subcategory:
+            query['subcategory'] = subcategory
+        if content_type:
+            query['content_type'] = content_type
+        if search:
+            query['$or'] = [
+                {'title': {'$regex': search, '$options': 'i'}},
+                {'description': {'$regex': search, '$options': 'i'}},
+                {'tags': {'$regex': search, '$options': 'i'}}
+            ]
+        
+        # Fetch resources
+        resources = await db.resources.find(query, {"_id": 0}).to_list(1000)
+        
+        return resources
+    except Exception as e:
+        logging.error(f"Error fetching resources: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/resources/{resource_id}")
+async def get_resource_by_id(resource_id: str):
+    """Get a single resource by ID and increment view count"""
+    try:
+        resource = await db.resources.find_one({"id": resource_id}, {"_id": 0})
+        if not resource:
+            raise HTTPException(status_code=404, detail="Resource not found")
+        
+        # Increment view count
+        await db.resources.update_one(
+            {"id": resource_id},
+            {"$inc": {"views": 1}}
+        )
+        resource['views'] = resource.get('views', 0) + 1
+        
+        return resource
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error fetching resource: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/resources/bookmark")
+async def bookmark_resource(bookmark_data: ResourceBookmarkCreate):
+    """Bookmark a resource for a user"""
+    try:
+        # Check if already bookmarked
+        existing = await db.resource_bookmarks.find_one({
+            "user_id": bookmark_data.user_id,
+            "resource_id": bookmark_data.resource_id
+        })
+        
+        if existing:
+            return {"message": "Already bookmarked", "success": True}
+        
+        # Create bookmark
+        bookmark = ResourceBookmark(
+            user_id=bookmark_data.user_id,
+            resource_id=bookmark_data.resource_id
+        )
+        
+        doc = bookmark.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.resource_bookmarks.insert_one(doc)
+        
+        # Increment bookmark count on resource
+        await db.resources.update_one(
+            {"id": bookmark_data.resource_id},
+            {"$inc": {"bookmarks": 1}}
+        )
+        
+        return {"message": "Resource bookmarked successfully", "success": True, "bookmark_id": bookmark.id}
+    except Exception as e:
+        logging.error(f"Error bookmarking resource: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/resources/bookmark/{user_id}/{resource_id}")
+async def remove_bookmark(user_id: str, resource_id: str):
+    """Remove a bookmark"""
+    try:
+        result = await db.resource_bookmarks.delete_one({
+            "user_id": user_id,
+            "resource_id": resource_id
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Bookmark not found")
+        
+        # Decrement bookmark count on resource
+        await db.resources.update_one(
+            {"id": resource_id},
+            {"$inc": {"bookmarks": -1}}
+        )
+        
+        return {"message": "Bookmark removed successfully", "success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error removing bookmark: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/resources/bookmarks/{user_id}")
+async def get_user_bookmarks(user_id: str):
+    """Get all bookmarked resources for a user"""
+    try:
+        # Get bookmark records
+        bookmarks = await db.resource_bookmarks.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        if not bookmarks:
+            return []
+        
+        # Get resource IDs
+        resource_ids = [b['resource_id'] for b in bookmarks]
+        
+        # Fetch full resource details
+        resources = await db.resources.find(
+            {"id": {"$in": resource_ids}},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        return resources
+    except Exception as e:
+        logging.error(f"Error fetching user bookmarks: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/resources/categories/summary")
+async def get_categories_summary():
+    """Get summary of all categories with resource counts"""
+    try:
+        # Ensure resources are seeded
+        count = await db.resources.count_documents({})
+        if count == 0:
+            for resource in EDUCATIONAL_RESOURCES:
+                doc = resource.copy()
+                doc['created_at'] = datetime.now(timezone.utc).isoformat()
+                await db.resources.insert_one(doc)
+        
+        # Get counts by category
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$category",
+                    "count": {"$sum": 1}
+                }
+            }
+        ]
+        
+        results = await db.resources.aggregate(pipeline).to_list(100)
+        
+        summary = {
+            "conditions": 0,
+            "techniques": 0,
+            "videos": 0,
+            "reading": 0,
+            "myths": 0
+        }
+        
+        for result in results:
+            category = result['_id']
+            if category in summary:
+                summary[category] = result['count']
+        
+        return summary
+    except Exception as e:
+        logging.error(f"Error fetching categories summary: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Socket.IO events
 @sio.event
 async def connect(sid, environ):
