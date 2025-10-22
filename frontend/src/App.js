@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot, TrendingUp, Trophy, Shield, Phone, Wind } from "lucide-react";
+import { Brain, MessageCircle, Star, Sparkles, Heart, Users, Send, LogOut, Bot, TrendingUp, Trophy, Shield, Phone, Wind, BookOpen } from "lucide-react";
 import Communities from "@/pages/Communities";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
@@ -21,6 +21,7 @@ import Analytics from "@/pages/Analytics";
 import Achievements from "@/pages/Achievements";
 import CrisisSupport from "@/pages/CrisisSupport";
 import Meditation from "@/pages/Meditation";
+import Resources from "@/pages/Resources";
 import CrisisButton from "@/components/CrisisButton";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
