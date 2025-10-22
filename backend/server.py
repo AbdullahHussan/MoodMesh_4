@@ -318,6 +318,140 @@ async def get_mood_logs(user_id: str):
             log['timestamp'] = datetime.fromisoformat(log['timestamp'])
     return logs
 
+@api_router.get("/mood/analytics/{user_id}")
+async def get_mood_analytics(user_id: str):
+    try:
+        # Get all mood logs for the user
+        logs = await db.mood_logs.find({"user_id": user_id}, {"_id": 0}).to_list(1000)
+        
+        if not logs:
+            return {
+                "total_logs": 0,
+                "mood_trend": [],
+                "hourly_distribution": {},
+                "common_emotions": [],
+                "insights": [],
+                "current_streak": 0,
+                "longest_streak": 0
+            }
+        
+        # Parse timestamps
+        for log in logs:
+            if isinstance(log['timestamp'], str):
+                log['timestamp'] = datetime.fromisoformat(log['timestamp'])
+        
+        # Sort by timestamp
+        logs.sort(key=lambda x: x['timestamp'])
+        
+        # 1. Total logs
+        total_logs = len(logs)
+        
+        # 2. Mood trend by date (last 30 days)
+        mood_trend = {}
+        for log in logs:
+            date_key = log['timestamp'].strftime('%Y-%m-%d')
+            if date_key not in mood_trend:
+                mood_trend[date_key] = 0
+            mood_trend[date_key] += 1
+        
+        # Convert to list format for frontend
+        trend_list = [{"date": date, "count": count} for date, count in sorted(mood_trend.items())]
+        
+        # 3. Hourly distribution (time of day patterns)
+        hourly_dist = {}
+        for log in logs:
+            hour = log['timestamp'].hour
+            if hour not in hourly_dist:
+                hourly_dist[hour] = 0
+            hourly_dist[hour] += 1
+        
+        # 4. Common emotions/keywords (extract from mood_text)
+        all_words = []
+        stop_words = {'i', 'am', 'feel', 'feeling', 'im', 'the', 'a', 'an', 'and', 'or', 'but', 'to', 'of', 'in', 'on', 'at', 'for', 'with', 'is', 'was', 'are', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'my', 'me', 'so', 'very', 'really', 'just', 'like', 'about', 'today', 'yesterday'}
+        
+        for log in logs:
+            words = log['mood_text'].lower().split()
+            filtered_words = [w.strip('.,!?;:') for w in words if len(w) > 3 and w.lower() not in stop_words]
+            all_words.extend(filtered_words)
+        
+        # Count word frequency
+        from collections import Counter
+        word_counts = Counter(all_words)
+        common_emotions = [{"word": word, "count": count} for word, count in word_counts.most_common(10)]
+        
+        # 5. Calculate streaks
+        dates_logged = sorted(set(log['timestamp'].date() for log in logs))
+        current_streak = 0
+        longest_streak = 0
+        temp_streak = 1
+        
+        today = datetime.now(timezone.utc).date()
+        
+        if dates_logged:
+            # Current streak
+            if dates_logged[-1] == today or dates_logged[-1] == today - timedelta(days=1):
+                current_streak = 1
+                for i in range(len(dates_logged) - 2, -1, -1):
+                    if dates_logged[i] == dates_logged[i + 1] - timedelta(days=1):
+                        current_streak += 1
+                    else:
+                        break
+            
+            # Longest streak
+            for i in range(1, len(dates_logged)):
+                if dates_logged[i] == dates_logged[i - 1] + timedelta(days=1):
+                    temp_streak += 1
+                    longest_streak = max(longest_streak, temp_streak)
+                else:
+                    temp_streak = 1
+            longest_streak = max(longest_streak, temp_streak)
+        
+        # 6. Generate AI insights
+        insights = []
+        
+        # Most active hour
+        if hourly_dist:
+            peak_hour = max(hourly_dist, key=hourly_dist.get)
+            peak_hour_12 = peak_hour if peak_hour <= 12 else peak_hour - 12
+            am_pm = "AM" if peak_hour < 12 else "PM"
+            insights.append(f"You're most likely to log your mood around {peak_hour_12}:00 {am_pm}")
+        
+        # Recent activity
+        recent_logs = [log for log in logs if log['timestamp'] >= datetime.now(timezone.utc) - timedelta(days=7)]
+        if recent_logs:
+            insights.append(f"You've logged {len(recent_logs)} moods in the past week. Great consistency!")
+        
+        # Common themes
+        if common_emotions:
+            top_emotion = common_emotions[0]['word']
+            insights.append(f"'{top_emotion}' appears frequently in your mood logs. This might be a key theme to explore.")
+        
+        # Streak motivation
+        if current_streak >= 3:
+            insights.append(f"You're on a {current_streak}-day logging streak! Keep it up!")
+        elif current_streak == 0 and longest_streak > 0:
+            insights.append(f"Your longest streak was {longest_streak} days. You can beat that!")
+        
+        # Activity pattern
+        if len(mood_trend) >= 7:
+            recent_7_days = list(mood_trend.values())[-7:]
+            avg_logs = sum(recent_7_days) / 7
+            if avg_logs > 1:
+                insights.append(f"You're averaging {avg_logs:.1f} mood logs per day. Self-reflection is powerful!")
+        
+        return {
+            "total_logs": total_logs,
+            "mood_trend": trend_list[-30:],  # Last 30 days
+            "hourly_distribution": hourly_dist,
+            "common_emotions": common_emotions,
+            "insights": insights,
+            "current_streak": current_streak,
+            "longest_streak": longest_streak
+        }
+    except Exception as e:
+        logging.error(f"Error getting mood analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/profile/create", response_model=UserProfile)
 async def create_profile(username: str, user_id: Optional[str] = None):
     if not user_id:
