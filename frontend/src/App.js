@@ -867,8 +867,172 @@ const AITherapist = () => {
           </Card>
         </div>
       )}
+
+      {/* Insights Modal */}
+      {showInsights && insights && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <CardHeader className="bg-gradient-to-r from-purple-100 to-blue-100">
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Brain className="w-8 h-8 text-purple-600" />
+                Your Therapy Insights
+              </CardTitle>
+              <CardDescription>
+                AI-powered analysis of your mental health journey
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Total Sessions</p>
+                    <p className="text-2xl font-bold text-purple-900">{insights.total_sessions}</p>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Conversations</p>
+                    <p className="text-2xl font-bold text-blue-900">{insights.total_conversations}</p>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Mood Logs</p>
+                    <p className="text-2xl font-bold text-green-900">{insights.total_mood_logs}</p>
+                  </div>
+                  <div className="p-4 bg-pink-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Check-ins</p>
+                    <p className="text-2xl font-bold text-pink-900">{insights.total_checkins}</p>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                  <h3 className="font-bold text-lg text-purple-900 mb-3 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    AI Analysis
+                  </h3>
+                  <div className="prose prose-sm max-w-none">
+                    <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">{insights.ai_insights}</p>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={() => setShowInsights(false)}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  Close Insights
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Mood Check-in Modal */}
+      {showMoodCheckIn && <MoodCheckInModal onClose={() => setShowMoodCheckIn(false)} onSubmit={submitMoodCheckIn} />}
       
       <Toaster />
+    </div>
+  );
+};
+
+// Mood Check-in Modal Component
+const MoodCheckInModal = ({ onClose, onSubmit }) => {
+  const [rating, setRating] = useState(5);
+  const [selectedEmotions, setSelectedEmotions] = useState([]);
+  const [note, setNote] = useState("");
+
+  const emotions = [
+    "Happy", "Sad", "Anxious", "Calm", "Angry", "Peaceful", 
+    "Stressed", "Energized", "Tired", "Hopeful", "Frustrated", "Content"
+  ];
+
+  const toggleEmotion = (emotion) => {
+    setSelectedEmotions(prev => 
+      prev.includes(emotion) 
+        ? prev.filter(e => e !== emotion)
+        : [...prev, emotion]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (selectedEmotions.length === 0) {
+      toast.error("Please select at least one emotion");
+      return;
+    }
+    onSubmit(rating, selectedEmotions, note);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="max-w-md w-full">
+        <CardHeader className="bg-gradient-to-r from-purple-100 to-pink-100">
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="w-6 h-6 text-purple-600" />
+            Quick Mood Check-in
+          </CardTitle>
+          <CardDescription>How are you feeling right now?</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold mb-3">Rate your mood (1-10)</label>
+              <div className="flex items-center gap-4">
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="10" 
+                  value={rating}
+                  onChange={(e) => setRating(parseInt(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="text-2xl font-bold text-purple-600 w-12 text-center">{rating}</span>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Very Low</span>
+                <span>Very High</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2">Select your emotions</label>
+              <div className="flex flex-wrap gap-2">
+                {emotions.map(emotion => (
+                  <Badge
+                    key={emotion}
+                    variant={selectedEmotions.includes(emotion) ? "default" : "outline"}
+                    className={`cursor-pointer transition-all ${
+                      selectedEmotions.includes(emotion) 
+                        ? 'bg-purple-600 text-white' 
+                        : 'hover:bg-purple-100'
+                    }`}
+                    onClick={() => toggleEmotion(emotion)}
+                  >
+                    {emotion}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2">Quick note (optional)</label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Anything specific on your mind?"
+                className="w-full p-3 border rounded-lg resize-none"
+                rows="3"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} className="flex-1">
+                Cancel
+              </Button>
+              <Button onClick={handleSubmit} className="flex-1 bg-purple-600 hover:bg-purple-700">
+                Save Check-in
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
