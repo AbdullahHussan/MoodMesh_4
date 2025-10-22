@@ -113,7 +113,8 @@ const MusicTherapy = () => {
       window.location.href = response.data.auth_url;
     } catch (error) {
       console.error("Spotify login error:", error);
-      toast.error("Failed to connect to Spotify");
+      const errorMessage = error.response?.data?.detail || "Failed to connect to Spotify";
+      toast.error(errorMessage);
     }
   };
 
