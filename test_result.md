@@ -389,6 +389,18 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Added Music & Sound Therapy card to dashboard with Music icon and gradient background. Added route to /music page. Imported MusicTherapy component."
+  
+  - task: "Enhanced AI Therapist UI - Advanced Features"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MAJOR UI OVERHAUL: (1) Enhanced chat interface with 2-column layout (main chat + sidebar on desktop), (2) Session management - start new session button, session tracking with message count, (3) Mood context display - shows blue banner when mood patterns are analyzed, (4) Therapeutic technique cards - displays CBT/DBT/mindfulness techniques inline after therapist messages with step-by-step instructions, color-coded badges, (5) Insights modal - 'Insights' button opens comprehensive AI analysis with stats grid (sessions, conversations, mood logs, check-ins) and full AI-generated insights report, (6) Mood check-in modal - 'Check-in' button opens quick mood rating (1-10 slider), emotion selection (12 emotions), and optional note, (7) Sidebar info panel - shows suggested techniques, emergency resources (988 hotline, text 741741), session info, (8) Enhanced welcome message with feature badges, (9) Better loading state with descriptive text, (10) Updated copy to reflect 'AI Mental Health Companion' with evidence-based therapy. Uses sessionId, moodContext, suggestedTechniques state."
 
 metadata:
   created_by: "main_agent"
