@@ -170,15 +170,18 @@ backend:
   
   - task: "Music Therapy - Built-in Audio Library API"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created built-in audio library endpoint: GET /api/music/library (returns categorized audio). Seeded 13 audio items: (1) Nature sounds: Ocean Waves, Rain, Forest Birds, Mountain Stream, Distant Thunder, (2) White noise: Pure White, Pink, Brown, (3) Binaural beats: Theta 6Hz meditation, Beta 15Hz focus, Delta 2Hz sleep, Alpha 10Hz anxiety relief. Each with audio URLs from Pixabay, descriptions, durations, and tags."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE: GET /api/music/library endpoint works correctly (returns 12 items: 5 nature, 3 white noise, 4 binaural beats) BUT all audio URLs return 403 Forbidden errors. Tested URLs from Pixabay CDN are not accessible, preventing audio playback functionality. This is the root cause of user-reported 'audio playback for relaxation not working'. Endpoint structure is correct with all required fields (id, title, description, category, duration, audio_url, tags). RECOMMENDATION: Replace Pixabay URLs with accessible audio sources or host files locally."
   
   - task: "Music Therapy - AI Recommendations API"
     implemented: true
