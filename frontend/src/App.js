@@ -22,7 +22,6 @@ import Achievements from "@/pages/Achievements";
 import CrisisSupport from "@/pages/CrisisSupport";
 import Meditation from "@/pages/Meditation";
 import Resources from "@/pages/Resources";
-import MusicTherapy from "@/pages/MusicTherapy";
 import CrisisButton from "@/components/CrisisButton";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
