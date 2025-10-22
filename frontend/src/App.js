@@ -733,6 +733,7 @@ function App() {
           <Route path="/ai-therapist" element={<AITherapist />} />
           <Route path="/communities" element={<Communities />} />
           <Route path="/community/:communityId" element={<CommunityRoom />} />
+          <Route path="/crisis-support" element={<CrisisSupport />} />
         </Routes>
       </BrowserRouter>
     </div>
