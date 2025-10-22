@@ -404,13 +404,17 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 4
+  version: "1.1"
+  test_sequence: 5
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Resource Library API"
+    - "Enhanced AI Therapist - Advanced Chat with Mood Context"
+    - "AI Therapist - Session Management API"
+    - "AI Therapist - Mood Check-ins API"
+    - "AI Therapist - Insights & Analytics API"
+    - "Enhanced AI Therapist UI - Advanced Features"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
