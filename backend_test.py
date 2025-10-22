@@ -1993,6 +1993,576 @@ class MoodMeshResourceLibraryTest:
             print("⚠️  Some resource library tests FAILED!")
             return False
 
+class MoodMeshAITherapistTest:
+    def __init__(self):
+        self.base_url = BACKEND_URL
+        self.test_user_id = "test-therapist-user-001"
+        self.session_id = None
+        self.checkin_id = None
+        
+    def log_test(self, test_name, status, message=""):
+        """Log test results"""
+        status_symbol = "✅" if status else "❌"
+        print(f"{status_symbol} {test_name}: {message}")
+    
+    def create_mood_log(self, mood_text):
+        """Create a mood log for testing mood context"""
+        try:
+            response = requests.post(f"{self.base_url}/mood/log", json={
+                "user_id": self.test_user_id,
+                "mood_text": mood_text
+            })
+            return response.status_code == 200
+        except:
+            return False
+    
+    def test_enhanced_chat_first_message(self):
+        """Test POST /api/therapist/chat - First message (should create new session)"""
+        try:
+            chat_data = {
+                "user_id": self.test_user_id,
+                "message": "Hi, I'm feeling really anxious about my upcoming job interview. I can't stop worrying about it."
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["therapist_response", "session_id", "suggested_techniques", "mood_context"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Enhanced Chat - First Message Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should create a new session
+                if not data["session_id"]:
+                    self.log_test("Enhanced Chat - Session Creation", False, "No session_id returned")
+                    return False
+                
+                # Store session ID for future tests
+                self.session_id = data["session_id"]
+                
+                # Should have therapist response
+                if not data["therapist_response"] or len(data["therapist_response"]) < 10:
+                    self.log_test("Enhanced Chat - Response Quality", False, "Therapist response too short or empty")
+                    return False
+                
+                # Should suggest techniques for anxiety
+                if not isinstance(data["suggested_techniques"], list):
+                    self.log_test("Enhanced Chat - Techniques Structure", False, "suggested_techniques should be a list")
+                    return False
+                
+                self.log_test("Enhanced Chat - First Message", True, f"Session created: {data['session_id'][:8]}..., {len(data['suggested_techniques'])} techniques suggested")
+                return True
+            else:
+                self.log_test("Enhanced Chat - First Message", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Enhanced Chat - First Message", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_enhanced_chat_anxiety_keywords(self):
+        """Test chat with anxiety keywords to trigger mindfulness techniques"""
+        try:
+            if not self.session_id:
+                self.log_test("Anxiety Keywords Test - No Session", False, "No session available")
+                return False
+            
+            chat_data = {
+                "user_id": self.test_user_id,
+                "message": "I'm having panic attacks and my mind is racing with worried thoughts. I feel so anxious and stressed.",
+                "session_id": self.session_id
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should suggest mindfulness techniques for anxiety
+                mindfulness_found = False
+                for technique in data["suggested_techniques"]:
+                    if ("grounding" in technique.get("technique_name", "").lower() or 
+                        "mindfulness" in technique.get("technique_type", "").lower()):
+                        mindfulness_found = True
+                        
+                        # Check technique structure
+                        if "steps" not in technique or not isinstance(technique["steps"], list):
+                            self.log_test("Anxiety Keywords - Technique Steps", False, "Technique missing steps")
+                            return False
+                        break
+                
+                if not mindfulness_found:
+                    self.log_test("Anxiety Keywords - Mindfulness Trigger", False, "No mindfulness technique suggested for anxiety")
+                    return False
+                
+                self.log_test("Enhanced Chat - Anxiety Keywords", True, "Mindfulness technique correctly suggested for anxiety")
+                return True
+            else:
+                self.log_test("Enhanced Chat - Anxiety Keywords", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Enhanced Chat - Anxiety Keywords", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_enhanced_chat_cbt_trigger(self):
+        """Test chat with thought patterns to trigger CBT techniques"""
+        try:
+            if not self.session_id:
+                self.log_test("CBT Trigger Test - No Session", False, "No session available")
+                return False
+            
+            chat_data = {
+                "user_id": self.test_user_id,
+                "message": "I always think the worst will happen. I believe I'm never good enough and I should be perfect at everything.",
+                "session_id": self.session_id
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should suggest CBT techniques for thought patterns
+                cbt_found = False
+                for technique in data["suggested_techniques"]:
+                    if ("cognitive" in technique.get("technique_name", "").lower() or 
+                        "cbt" in technique.get("technique_type", "").lower()):
+                        cbt_found = True
+                        
+                        # Verify CBT technique has proper structure
+                        required_keys = ["technique_name", "technique_type", "description", "steps"]
+                        missing_keys = [key for key in required_keys if key not in technique]
+                        if missing_keys:
+                            self.log_test("CBT Trigger - Technique Structure", False, f"Missing keys: {missing_keys}")
+                            return False
+                        break
+                
+                if not cbt_found:
+                    self.log_test("CBT Trigger - CBT Technique", False, "No CBT technique suggested for thought patterns")
+                    return False
+                
+                self.log_test("Enhanced Chat - CBT Trigger", True, "CBT technique correctly suggested for thought patterns")
+                return True
+            else:
+                self.log_test("Enhanced Chat - CBT Trigger", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Enhanced Chat - CBT Trigger", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_enhanced_chat_dbt_trigger(self):
+        """Test chat with overwhelm to trigger DBT techniques"""
+        try:
+            if not self.session_id:
+                self.log_test("DBT Trigger Test - No Session", False, "No session available")
+                return False
+            
+            chat_data = {
+                "user_id": self.test_user_id,
+                "message": "I feel completely overwhelmed and out of control. The emotions are too intense and I can't handle it anymore.",
+                "session_id": self.session_id
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should suggest DBT techniques for overwhelm
+                dbt_found = False
+                for technique in data["suggested_techniques"]:
+                    if ("tipp" in technique.get("technique_name", "").lower() or 
+                        "dbt" in technique.get("technique_type", "").lower()):
+                        dbt_found = True
+                        
+                        # Verify DBT technique mentions distress tolerance
+                        if "distress" not in technique.get("description", "").lower():
+                            self.log_test("DBT Trigger - Distress Tolerance", False, "DBT technique should mention distress tolerance")
+                            return False
+                        break
+                
+                if not dbt_found:
+                    self.log_test("DBT Trigger - DBT Technique", False, "No DBT technique suggested for overwhelm")
+                    return False
+                
+                self.log_test("Enhanced Chat - DBT Trigger", True, "DBT technique correctly suggested for overwhelm")
+                return True
+            else:
+                self.log_test("Enhanced Chat - DBT Trigger", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Enhanced Chat - DBT Trigger", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_enhanced_crisis_detection(self):
+        """Test enhanced crisis detection with expanded keywords"""
+        try:
+            if not self.session_id:
+                self.log_test("Crisis Detection Test - No Session", False, "No session available")
+                return False
+            
+            chat_data = {
+                "user_id": self.test_user_id,
+                "message": "I feel hopeless and worthless. I can't go on like this anymore. Nothing matters.",
+                "session_id": self.session_id
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should detect crisis
+                if not data.get("crisis_detected", False):
+                    self.log_test("Crisis Detection - Detection", False, "Crisis not detected with hopeless/worthless keywords")
+                    return False
+                
+                # Should have crisis severity
+                if "crisis_severity" not in data or not data["crisis_severity"]:
+                    self.log_test("Crisis Detection - Severity", False, "Crisis severity not provided")
+                    return False
+                
+                # Severity should be medium or high for these keywords
+                if data["crisis_severity"] not in ["medium", "high"]:
+                    self.log_test("Crisis Detection - Severity Level", False, f"Unexpected severity: {data['crisis_severity']}")
+                    return False
+                
+                self.log_test("Enhanced Crisis Detection", True, f"Crisis detected with severity: {data['crisis_severity']}")
+                return True
+            else:
+                self.log_test("Enhanced Crisis Detection", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Enhanced Crisis Detection", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mood_context_integration(self):
+        """Test that therapist responses reference mood patterns"""
+        try:
+            # First create some mood logs
+            mood_logs = [
+                "Feeling anxious and worried about the future",
+                "Had a panic attack today, feeling overwhelmed",
+                "Struggling with negative thoughts about myself"
+            ]
+            
+            for mood in mood_logs:
+                self.create_mood_log(mood)
+                time.sleep(0.1)
+            
+            # Wait for processing
+            time.sleep(1)
+            
+            chat_data = {
+                "user_id": self.test_user_id,
+                "message": "How can I manage my anxiety better?",
+                "session_id": self.session_id
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/chat", json=chat_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Should have mood context
+                if not data.get("mood_context"):
+                    self.log_test("Mood Context - Context Provided", False, "No mood_context in response")
+                    return False
+                
+                mood_context = data["mood_context"]
+                
+                # Check mood context structure
+                required_keys = ["recent_mood_count", "recent_moods", "patterns"]
+                missing_keys = [key for key in required_keys if key not in mood_context]
+                
+                if missing_keys:
+                    self.log_test("Mood Context - Structure", False, f"Missing mood context keys: {missing_keys}")
+                    return False
+                
+                # Should have recent moods
+                if mood_context["recent_mood_count"] < 3:
+                    self.log_test("Mood Context - Recent Count", False, f"Expected at least 3 recent moods, got {mood_context['recent_mood_count']}")
+                    return False
+                
+                self.log_test("Mood Context Integration", True, f"Mood context provided with {mood_context['recent_mood_count']} recent moods")
+                return True
+            else:
+                self.log_test("Mood Context Integration", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Mood Context Integration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_session_management_get_sessions(self):
+        """Test GET /api/therapist/sessions/{user_id}"""
+        try:
+            response = requests.get(f"{self.base_url}/therapist/sessions/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                sessions = response.json()
+                
+                if not isinstance(sessions, list):
+                    self.log_test("Get Sessions - Structure", False, "Response should be a list")
+                    return False
+                
+                # Should have at least 1 session from previous tests
+                if len(sessions) == 0:
+                    self.log_test("Get Sessions - Count", False, "No sessions found")
+                    return False
+                
+                # Check first session structure
+                first_session = sessions[0]
+                required_keys = ["session_id", "user_id", "session_start", "message_count"]
+                missing_keys = [key for key in required_keys if key not in first_session]
+                
+                if missing_keys:
+                    self.log_test("Get Sessions - Session Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify user_id matches
+                if first_session["user_id"] != self.test_user_id:
+                    self.log_test("Get Sessions - User ID", False, "Session user_id doesn't match")
+                    return False
+                
+                self.log_test("Session Management - Get Sessions", True, f"Retrieved {len(sessions)} sessions")
+                return True
+            else:
+                self.log_test("Session Management - Get Sessions", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Session Management - Get Sessions", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_session_details(self):
+        """Test GET /api/therapist/session/{session_id}"""
+        try:
+            if not self.session_id:
+                self.log_test("Session Details - No Session", False, "No session ID available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/therapist/session/{self.session_id}")
+            
+            if response.status_code == 200:
+                session_data = response.json()
+                
+                # Check session structure
+                required_keys = ["session_id", "user_id", "session_start", "message_count", "messages"]
+                missing_keys = [key for key in required_keys if key not in session_data]
+                
+                if missing_keys:
+                    self.log_test("Session Details - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should have messages from our tests
+                if not isinstance(session_data["messages"], list):
+                    self.log_test("Session Details - Messages Structure", False, "Messages should be a list")
+                    return False
+                
+                if len(session_data["messages"]) == 0:
+                    self.log_test("Session Details - Messages Count", False, "No messages in session")
+                    return False
+                
+                # Check first message structure
+                first_message = session_data["messages"][0]
+                message_keys = ["user_message", "therapist_response", "timestamp"]
+                missing_msg_keys = [key for key in message_keys if key not in first_message]
+                
+                if missing_msg_keys:
+                    self.log_test("Session Details - Message Structure", False, f"Missing message keys: {missing_msg_keys}")
+                    return False
+                
+                self.log_test("Session Details", True, f"Session details with {len(session_data['messages'])} messages")
+                return True
+            else:
+                self.log_test("Session Details", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Session Details", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mood_checkin_create(self):
+        """Test POST /api/therapist/mood-checkin"""
+        try:
+            checkin_data = {
+                "user_id": self.test_user_id,
+                "mood_rating": 7,
+                "emotions": ["Happy", "Calm"],
+                "note": "Feeling good today after our therapy session"
+            }
+            
+            response = requests.post(f"{self.base_url}/therapist/mood-checkin", json=checkin_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["check_in_id", "user_id", "mood_rating", "emotions", "note", "timestamp"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Mood Check-in Create - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify data matches
+                if (data["user_id"] != checkin_data["user_id"] or
+                    data["mood_rating"] != checkin_data["mood_rating"] or
+                    data["emotions"] != checkin_data["emotions"] or
+                    data["note"] != checkin_data["note"]):
+                    self.log_test("Mood Check-in Create - Data Match", False, "Response data doesn't match request")
+                    return False
+                
+                # Store check-in ID
+                self.checkin_id = data["check_in_id"]
+                
+                self.log_test("Mood Check-in Create", True, f"Check-in created with rating {data['mood_rating']}")
+                return True
+            else:
+                self.log_test("Mood Check-in Create", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Mood Check-in Create", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_mood_checkins_get(self):
+        """Test GET /api/therapist/mood-checkins/{user_id}"""
+        try:
+            response = requests.get(f"{self.base_url}/therapist/mood-checkins/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                checkins = response.json()
+                
+                if not isinstance(checkins, list):
+                    self.log_test("Get Mood Check-ins - Structure", False, "Response should be a list")
+                    return False
+                
+                # Should have at least 1 check-in from previous test
+                if len(checkins) == 0:
+                    self.log_test("Get Mood Check-ins - Count", False, "No check-ins found")
+                    return False
+                
+                # Check first check-in structure
+                first_checkin = checkins[0]
+                required_keys = ["check_in_id", "user_id", "mood_rating", "emotions", "timestamp"]
+                missing_keys = [key for key in required_keys if key not in first_checkin]
+                
+                if missing_keys:
+                    self.log_test("Get Mood Check-ins - Check-in Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify user_id matches
+                if first_checkin["user_id"] != self.test_user_id:
+                    self.log_test("Get Mood Check-ins - User ID", False, "Check-in user_id doesn't match")
+                    return False
+                
+                self.log_test("Get Mood Check-ins", True, f"Retrieved {len(checkins)} check-ins")
+                return True
+            else:
+                self.log_test("Get Mood Check-ins", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Get Mood Check-ins", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ai_insights(self):
+        """Test GET /api/therapist/insights/{user_id}"""
+        try:
+            response = requests.get(f"{self.base_url}/therapist/insights/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["total_sessions", "total_conversations", "total_mood_logs", "total_checkins", "ai_insights"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("AI Insights - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should have some data from our tests
+                if data["total_sessions"] == 0:
+                    self.log_test("AI Insights - Sessions Count", False, "No sessions counted")
+                    return False
+                
+                if data["total_conversations"] == 0:
+                    self.log_test("AI Insights - Conversations Count", False, "No conversations counted")
+                    return False
+                
+                # AI insights should be a substantial text
+                if not data["ai_insights"] or len(data["ai_insights"]) < 50:
+                    self.log_test("AI Insights - Insights Quality", False, "AI insights too short or empty")
+                    return False
+                
+                # Check if insights contain therapeutic language
+                insights_text = data["ai_insights"].lower()
+                therapeutic_terms = ["progress", "therapy", "coping", "growth", "resilience", "techniques"]
+                
+                therapeutic_found = any(term in insights_text for term in therapeutic_terms)
+                if not therapeutic_found:
+                    self.log_test("AI Insights - Therapeutic Content", False, "Insights don't contain therapeutic language")
+                    return False
+                
+                self.log_test("AI Insights", True, f"Generated insights: {data['total_sessions']} sessions, {data['total_conversations']} conversations analyzed")
+                return True
+            else:
+                self.log_test("AI Insights", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("AI Insights", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_all_tests(self):
+        """Run all AI Therapist tests"""
+        print("=" * 60)
+        print("🤖 MOODMESH AI THERAPIST BACKEND TESTING")
+        print("=" * 60)
+        
+        results = {}
+        
+        # Test enhanced chat functionality
+        results["first_message"] = self.test_enhanced_chat_first_message()
+        results["anxiety_keywords"] = self.test_enhanced_chat_anxiety_keywords()
+        results["cbt_trigger"] = self.test_enhanced_chat_cbt_trigger()
+        results["dbt_trigger"] = self.test_enhanced_chat_dbt_trigger()
+        results["crisis_detection"] = self.test_enhanced_crisis_detection()
+        results["mood_context"] = self.test_mood_context_integration()
+        
+        # Test session management
+        results["get_sessions"] = self.test_session_management_get_sessions()
+        results["session_details"] = self.test_session_details()
+        
+        # Test mood check-ins
+        results["create_checkin"] = self.test_mood_checkin_create()
+        results["get_checkins"] = self.test_mood_checkins_get()
+        
+        # Test AI insights
+        results["ai_insights"] = self.test_ai_insights()
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 AI THERAPIST TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in results.values() if result)
+        total = len(results)
+        
+        for test_name, result in results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} {test_name.replace('_', ' ').title()}")
+        
+        print(f"\n🎯 Overall: {passed}/{total} tests passed")
+        
+        if passed == total:
+            print("🎉 All AI Therapist tests PASSED!")
+            return True
+        else:
+            print("⚠️  Some AI Therapist tests FAILED!")
+            return False
+
 if __name__ == "__main__":
     print("🧪 RUNNING MOODMESH BACKEND TESTS")
     print("=" * 60)
