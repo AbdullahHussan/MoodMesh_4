@@ -603,7 +603,7 @@ const Meditation = () => {
                 Sleep
               </Button>
               <Button
-                variant={selectedCategory === "focus" ? "default" ? "outline"}
+                variant={selectedCategory === "focus" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory("focus")}
               >
