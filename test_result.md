@@ -143,6 +143,78 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Created comprehensive resource library endpoints: GET /api/resources (all resources with filtering by category, subcategory, content_type, search), GET /api/resources/{resource_id} (single resource with view count increment), POST /api/resources/bookmark (bookmark resource), DELETE /api/resources/bookmark/{user_id}/{resource_id} (remove bookmark), GET /api/resources/bookmarks/{user_id} (user's bookmarked resources), GET /api/resources/categories/summary (category counts). Seeded 13 educational resources covering: (1) Mental health conditions - anxiety, depression, PTSD articles, (2) CBT techniques - thought records exercise, (3) DBT techniques - distress tolerance skills, (4) Video resources - anxiety management, depression recovery, mindfulness, (5) Reading recommendations - Feeling Good (CBT book), The Body Keeps the Score (trauma), (6) Myth-busting - depression myths, therapy stigma, medication misconceptions. Auto-seeds database on first request."
+  
+  - task: "Music Therapy - Spotify OAuth API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created Spotify OAuth endpoints using spotipy library: GET /api/music/spotify/login (generates auth URL), GET /api/music/spotify/callback (exchanges code for tokens), POST /api/music/spotify/refresh (refreshes access token), GET /api/music/spotify/profile (gets user profile and premium status). Configured with Spotify credentials from user."
+  
+  - task: "Music Therapy - Spotify Music API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created Spotify music endpoints: GET /api/music/spotify/search (search tracks with query), GET /api/music/spotify/recommendations (get tracks by seed genres). Returns track details including name, artist, album, duration, URI, preview URL, and album art."
+  
+  - task: "Music Therapy - Built-in Audio Library API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created built-in audio library endpoint: GET /api/music/library (returns categorized audio). Seeded 13 audio items: (1) Nature sounds: Ocean Waves, Rain, Forest Birds, Mountain Stream, Distant Thunder, (2) White noise: Pure White, Pink, Brown, (3) Binaural beats: Theta 6Hz meditation, Beta 15Hz focus, Delta 2Hz sleep, Alpha 10Hz anxiety relief. Each with audio URLs from Pixabay, descriptions, durations, and tags."
+  
+  - task: "Music Therapy - AI Recommendations API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created mood-based recommendation endpoint: GET /api/music/recommendations/{user_id}. Analyzes recent mood logs using Gemini AI to recommend: (1) Built-in audio categories, (2) Spotify genres, (3) Search suggestions. Returns mood analysis summary and personalized recommendations."
+  
+  - task: "Music Therapy - Audio Journaling API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created audio journaling endpoints: POST /api/music/journal/create (creates journal with text, optional voice recording URL, mood, and music context - awards 3 wellness stars), GET /api/music/journal/{user_id} (gets user's journals), GET /api/music/journal/entry/{journal_id} (gets specific entry)."
+  
+  - task: "Music Therapy - Listening History API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created music history tracking endpoints: POST /api/music/history/save (saves what user listened to with track name, artist, source, mood context, duration), GET /api/music/history/{user_id} (retrieves listening history)."
 
 frontend:
   - task: "Analytics Dashboard Page"
