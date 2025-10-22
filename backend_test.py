@@ -11,7 +11,7 @@ from datetime import datetime, timezone, timedelta
 import time
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://meditation-hub-4.preview.emergentagent.com/api"
+BACKEND_URL = "https://mood-fitness-connect.preview.emergentagent.com/api"
 
 class MoodMeshAnalyticsTest:
     def __init__(self):
