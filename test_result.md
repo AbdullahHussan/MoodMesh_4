@@ -146,7 +146,7 @@ backend:
   
   - task: "Music Therapy - Spotify OAuth API"
     implemented: true
-    working: "NA"
+    working: "needs_user_action"
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -155,6 +155,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Created Spotify OAuth endpoints using spotipy library: GET /api/music/spotify/login (generates auth URL), GET /api/music/spotify/callback (exchanges code for tokens), POST /api/music/spotify/refresh (refreshes access token), GET /api/music/spotify/profile (gets user profile and premium status). Configured with Spotify credentials from user."
+      - working: "needs_user_action"
+        agent: "main"
+        comment: "REQUIRES USER ACTION: User must register the redirect URI in Spotify Developer Dashboard. Current redirect URI: https://relax-player-patch.preview.emergentagent.com/music. Error shows 'INVALID_CLIENT: Invalid redirect URI' which means the Spotify App settings don't include this exact URL. Added better error handling in frontend to catch and display OAuth errors."
   
   - task: "Music Therapy - Spotify Music API"
     implemented: true
