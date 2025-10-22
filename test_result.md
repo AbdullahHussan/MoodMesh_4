@@ -348,10 +348,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Music Therapy - Spotify OAuth API"
-    - "Music Therapy - Built-in Audio Library API"
-    - "Music Therapy - AI Recommendations API"
-    - "Music Therapy - Audio Journaling API"
+    - "Resource Library API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
