@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for MoodMesh Analytics Feature
-Tests the /api/mood/analytics/{user_id} endpoint thoroughly
+Backend Test Suite for MoodMesh - Analytics & Meditation Features
+Tests the /api/mood/analytics/{user_id} and meditation endpoints thoroughly
 """
 
 import requests
