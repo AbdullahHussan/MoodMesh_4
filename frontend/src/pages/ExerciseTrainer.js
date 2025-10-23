@@ -247,17 +247,24 @@ const ExerciseTrainer = () => {
     const connections = [
       [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
       [11, 23], [12, 24], [23, 24], // Torso
-      [23, 25], [24, 26], [25, 27], [26, 28] // Legs
+      [23, 25], [24, 26], [25, 27], [26, 28], // Legs
+      [27, 29], [27, 31], [28, 30], [28, 32] // Feet
     ];
     
-    ctx.strokeStyle = '#00FF00';
-    ctx.lineWidth = 2;
+    // Determine line color based on form feedback
+    const isGoodForm = formFeedback.some(f => f.includes('Perfect') || f.includes('Great') || f.includes('Excellent'));
+    const isBadForm = formFeedback.some(f => f.includes('incorrect') || f.includes('Wrong') || f.includes('too'));
+    
+    ctx.strokeStyle = isGoodForm ? '#00FF00' : isBadForm ? '#FF4444' : '#FFFF00';
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = ctx.strokeStyle;
     
     connections.forEach(([start, end]) => {
       const startPoint = landmarks[start];
       const endPoint = landmarks[end];
       
-      if (startPoint && endPoint) {
+      if (startPoint && endPoint && startPoint.visibility > 0.5 && endPoint.visibility > 0.5) {
         ctx.beginPath();
         ctx.moveTo(startPoint.x * canvasRef.current.width, startPoint.y * canvasRef.current.height);
         ctx.lineTo(endPoint.x * canvasRef.current.width, endPoint.y * canvasRef.current.height);
@@ -266,19 +273,33 @@ const ExerciseTrainer = () => {
     });
     
     // Draw key points
-    ctx.fillStyle = '#FF0000';
+    ctx.shadowBlur = 15;
     [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(idx => {
       const point = landmarks[idx];
-      if (point) {
+      if (point && point.visibility > 0.5) {
+        // Outer glow
+        ctx.fillStyle = ctx.strokeStyle;
         ctx.beginPath();
         ctx.arc(
           point.x * canvasRef.current.width,
           point.y * canvasRef.current.height,
-          5, 0, 2 * Math.PI
+          8, 0, 2 * Math.PI
+        );
+        ctx.fill();
+        
+        // Inner dot
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(
+          point.x * canvasRef.current.width,
+          point.y * canvasRef.current.height,
+          4, 0, 2 * Math.PI
         );
         ctx.fill();
       }
     });
+    
+    ctx.shadowBlur = 0;
   };
 
   const calculateAngle = (a, b, c) => {
