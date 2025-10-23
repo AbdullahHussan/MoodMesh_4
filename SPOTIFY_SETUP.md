@@ -18,7 +18,7 @@ This error occurs when the redirect URI configured in your app doesn't match wha
 1. Scroll down to "Redirect URIs" section
 2. Add this exact URL:
    ```
-   https://yoga-pose-guide.preview.emergentagent.com/music
+   https://ai-exercise-guide.preview.emergentagent.com/music
    ```
 3. Click "Add" button
 4. Scroll to the bottom and click "Save" button
@@ -38,10 +38,10 @@ This error occurs when the redirect URI configured in your app doesn't match wha
 4. **Try incognito mode** - To ensure no cached data interferes
 
 ### Common Mistakes:
-- ❌ Adding trailing slash: `https://yoga-pose-guide.preview.emergentagent.com/music/`
+- ❌ Adding trailing slash: `https://ai-exercise-guide.preview.emergentagent.com/music/`
 - ❌ Using http instead of https: `http://relax-player-patch.preview.emergentagent.com/music`
-- ❌ Wrong path: `https://yoga-pose-guide.preview.emergentagent.com/spotify`
-- ✅ Correct: `https://yoga-pose-guide.preview.emergentagent.com/music`
+- ❌ Wrong path: `https://ai-exercise-guide.preview.emergentagent.com/spotify`
+- ✅ Correct: `https://ai-exercise-guide.preview.emergentagent.com/music`
 
 ## What's Been Fixed
 
