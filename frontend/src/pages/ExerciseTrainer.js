@@ -767,11 +767,46 @@ const ExerciseTrainer = () => {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Camera/Video Feed */}
-            <div className="lg:col-span-2">
+            {/* Video Demo and Camera Feed */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* YouTube Demo Video */}
               <Card>
-                <CardContent className="p-6">
-                  {useAICoach && cameraActive ? (
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Play className="w-5 h-5 text-red-600" />
+                    Exercise Demo Video
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="bg-gray-900 rounded-lg flex items-center justify-center" style={{height: '360px'}}>
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={selectedExercise.video_url}
+                      title={selectedExercise.name}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-lg"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Coach Camera Feed */}
+              {useAICoach && cameraActive && (
+                <Card className="border-green-500 border-2">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Camera className="w-5 h-5 text-green-600" />
+                      AI Coach - Live Camera Feed
+                      <Badge className="ml-auto bg-green-500">
+                        <Activity className="w-3 h-3 mr-1" />
+                        Active
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
                     <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
                       <video 
                         ref={videoRef} 
@@ -798,22 +833,19 @@ const ExerciseTrainer = () => {
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="bg-gray-900 rounded-lg flex items-center justify-center" style={{height: '480px'}}>
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        src={selectedExercise.video_url}
-                        title={selectedExercise.name}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="rounded-lg"
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Show message when AI Coach is enabled but camera not active yet */}
+              {useAICoach && !cameraActive && (
+                <Card className="border-yellow-500 border-2">
+                  <CardContent className="p-6 text-center">
+                    <Camera className="w-12 h-12 mx-auto mb-3 text-yellow-600" />
+                    <p className="text-gray-700 font-semibold">AI Coach camera will activate when you start the session</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Stats Panel */}
