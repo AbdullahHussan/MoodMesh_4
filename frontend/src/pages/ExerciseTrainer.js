@@ -220,17 +220,33 @@ const ExerciseTrainer = () => {
   };
 
   const onPoseResults = (results) => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current) {
+      console.warn("Canvas ref not available");
+      return;
+    }
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
+    if (!ctx) {
+      console.error("Could not get canvas context");
+      return;
+    }
+    
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw video
-    if (videoRef.current) {
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    // Draw video frame
+    if (videoRef.current && videoRef.current.readyState >= 2) {
+      try {
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      } catch (error) {
+        console.error("Error drawing video to canvas:", error);
+      }
+    } else {
+      // Video not ready, draw black background
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
     // Draw pose landmarks if detected
