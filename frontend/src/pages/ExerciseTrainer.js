@@ -115,24 +115,32 @@ const ExerciseTrainer = () => {
 
   const startCamera = async () => {
     try {
+      console.log("Requesting camera access...");
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480 } 
       });
       
+      console.log("Camera access granted, stream obtained");
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
-        setCameraActive(true);
         
-        // Wait for video to be ready then initialize pose detection
+        // Wait for video to be ready then set camera active
         videoRef.current.onloadedmetadata = () => {
+          console.log("Video metadata loaded, activating camera");
+          videoRef.current.play();
+          setCameraActive(true);
           initPoseDetection();
         };
+      } else {
+        console.error("Video ref not available");
+        toast.error("Video element not ready");
       }
     } catch (error) {
-      console.error("Camera access denied", error);
-      toast.error("Camera access required for AI Coach");
+      console.error("Camera access denied or error:", error);
+      toast.error("Camera access required for AI Coach. Please allow camera permissions.");
       setUseAICoach(false);
+      setCameraActive(false);
     }
   };
 
