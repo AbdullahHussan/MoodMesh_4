@@ -159,6 +159,22 @@ const ExerciseTrainer = () => {
     }
     
     try {
+      // Ensure canvas is properly sized FIRST
+      if (canvasRef.current) {
+        canvasRef.current.width = 640;
+        canvasRef.current.height = 480;
+        
+        // Draw initial black background to make canvas visible
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 640, 480);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Initializing AI Coach...', 320, 240);
+        console.log("Canvas initialized with dimensions:", canvasRef.current.width, canvasRef.current.height);
+      }
+      
       const pose = new window.Pose({
         locateFile: (file) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
@@ -177,11 +193,7 @@ const ExerciseTrainer = () => {
       pose.onResults(onPoseResults);
       poseDetectionRef.current = pose;
       
-      // Ensure canvas is properly sized
-      if (canvasRef.current) {
-        canvasRef.current.width = 640;
-        canvasRef.current.height = 480;
-      }
+      console.log("MediaPipe Pose initialized, starting detection loop...");
       
       // Start detection loop
       detectPose();
