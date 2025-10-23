@@ -299,6 +299,57 @@ class ResourceBookmarkCreate(BaseModel):
     user_id: str
     resource_id: str
 
+# Exercise Trainer Models
+class Exercise(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: str
+    category: str  # strength, cardio, yoga, flexibility
+    difficulty: str  # beginner, intermediate, advanced
+    target_muscles: List[str]
+    video_url: str
+    thumbnail_url: Optional[str] = None
+    duration_per_rep: int  # seconds per rep/hold
+    calories_per_rep: float
+    form_tips: List[str]
+    key_points: List[str]  # Key body parts to track for pose detection
+    pose_requirements: dict  # Angle requirements for proper form
+    
+class ExerciseSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    session_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    exercise_id: str
+    exercise_name: str
+    target_reps: int
+    completed_reps: int = 0
+    used_ai_coach: bool
+    session_start: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    session_end: Optional[datetime] = None
+    duration_seconds: Optional[int] = None
+    calories_burned: Optional[float] = None
+    form_accuracy: Optional[float] = None  # Percentage for AI coach sessions
+    feedback_notes: Optional[List[str]] = None
+    
+class ExerciseSessionStart(BaseModel):
+    user_id: str
+    exercise_id: str
+    target_reps: int
+    used_ai_coach: bool
+    
+class ExerciseSessionUpdate(BaseModel):
+    session_id: str
+    completed_reps: int
+    form_accuracy: Optional[float] = None
+    feedback_notes: Optional[List[str]] = None
+    
+class ExerciseSessionComplete(BaseModel):
+    session_id: str
+    completed_reps: int
+    duration_seconds: int
+    form_accuracy: Optional[float] = None
+
 # JWT Helper Functions
 def create_access_token(data: dict):
     to_encode = data.copy()
