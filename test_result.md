@@ -485,11 +485,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced AI Therapist - Advanced Chat with Mood Context"
-    - "AI Therapist - Session Management API"
-    - "AI Therapist - Mood Check-ins API"
-    - "AI Therapist - Insights & Analytics API"
-    - "Enhanced AI Therapist UI - Advanced Features"
+    - "Exercise Trainer API - Exercise Library"
+    - "Exercise Trainer API - Session Management"
+    - "Exercise Trainer API - Progress & History"
+    - "Exercise Trainer - MediaPipe Pose Detection"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
