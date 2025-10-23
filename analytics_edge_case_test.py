@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import time
 
-BACKEND_URL = "https://ai-exercise-guide.preview.emergentagent.com/api"
+BACKEND_URL = "https://visible-trainer-ai.preview.emergentagent.com/api"
 
 class AnalyticsEdgeCaseTest:
     def __init__(self):
