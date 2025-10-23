@@ -402,6 +402,42 @@ frontend:
         agent: "main"
         comment: "Added Resource Library card to dashboard with BookOpen icon and route to /resources page"
   
+  - task: "Exercise Trainer Page - Main Interface"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ExerciseTrainer.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive Exercise Trainer page with 3 main views: (1) Exercise Library - grid of 12 exercises with category filters (all/strength/cardio/yoga), thumbnail images, difficulty badges, calorie info per rep, (2) Exercise Setup - selected exercise details with YouTube video embed, form tips checklist, target reps slider (5-50), AI Coach toggle with camera permission prompt, manual mode explanation, (3) Active Session - split screen with video feed/canvas for pose detection OR YouTube demo video, real-time rep counter with progress bar, timer, manual +/- buttons for non-AI mode, form feedback overlay, complete session button. Added Progress Summary card showing total sessions, reps, calories, minutes, exercises tried, favorite exercise, average form accuracy, and current streak."
+  
+  - task: "Exercise Trainer - MediaPipe Pose Detection"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ExerciseTrainer.js, /app/frontend/public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated MediaPipe Pose via CDN (no npm dependencies) for real-time pose detection: (1) Camera access via getUserMedia API (640x480 video), (2) MediaPipe Pose initialization with model complexity 1, detection confidence 0.5, tracking confidence 0.5, (3) Canvas overlay for drawing 33 body landmarks and connections (arms, torso, legs), (4) Rule-based rep counting for specific exercises: Push-ups (elbow angle detection 70-110° down, 160-180° up), Squats (knee angle 70-110° down, 160-180° up), Jumping Jacks (arm/leg position tracking), Lunges (knee angle 80-100°), High Knees (knee height relative to hip), Generic movement detection for other exercises, (5) Form feedback messages displayed on video overlay, (6) Automatic rep increment with toast notifications, auto-complete when target reached, (7) Pose angle calculation using Math.atan2 for joint angles. Added 4 MediaPipe CDN scripts to index.html: camera_utils, control_utils, drawing_utils, pose."
+  
+  - task: "Exercise Trainer Navigation Card"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added Exercise Trainer card to dashboard with Dumbbell icon, red theme (red-100 bg, red-600 icon, red-400 hover border), description: 'AI-powered form tracking for yoga, stretching, and exercises with real-time guidance'. Added route /exercise-trainer to Routes. Imported ExerciseTrainer component."
+  
   - task: "Music Therapy Page"
     implemented: true
     working: "NA"
