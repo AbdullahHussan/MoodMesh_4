@@ -731,10 +731,11 @@ const ExerciseTrainer = () => {
               <Card>
                 <CardContent className="p-6">
                   {useAICoach && cameraActive ? (
-                    <div className="relative bg-gray-900">
+                    <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
                       <video 
                         ref={videoRef} 
-                        className="hidden"
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        style={{ display: 'none' }}
                         width="640" 
                         height="480"
                         autoPlay
@@ -744,9 +745,17 @@ const ExerciseTrainer = () => {
                         ref={canvasRef}
                         width="640"
                         height="480"
-                        className="w-full rounded-lg border-4 border-green-500"
-                        style={{ maxHeight: '480px' }}
+                        className="w-full h-full rounded-lg border-4 border-green-500 block"
+                        style={{ display: 'block', objectFit: 'contain', backgroundColor: '#000' }}
                       />
+                      {!poseDetectionRef.current && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
+                          <div className="text-center">
+                            <Camera className="w-12 h-12 mx-auto mb-2 animate-pulse" />
+                            <p>Initializing AI Coach...</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="bg-gray-900 rounded-lg flex items-center justify-center" style={{height: '480px'}}>
