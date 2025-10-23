@@ -125,13 +125,29 @@ const ExerciseTrainer = () => {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         
-        // Wait for video to be ready then set camera active
-        videoRef.current.onloadedmetadata = () => {
-          console.log("Video metadata loaded, activating camera");
-          videoRef.current.play();
-          setCameraActive(true);
-          initPoseDetection();
+        const activateCamera = () => {
+          console.log("Activating camera and pose detection");
+          videoRef.current.play().then(() => {
+            console.log("Video playing, setting cameraActive to true");
+            setCameraActive(true);
+            initPoseDetection();
+            toast.success("Camera activated!");
+          }).catch(err => {
+            console.error("Error playing video:", err);
+          });
         };
+        
+        // Check if metadata is already loaded, otherwise wait for it
+        if (videoRef.current.readyState >= 2) {
+          console.log("Video metadata already loaded");
+          activateCamera();
+        } else {
+          console.log("Waiting for video metadata to load...");
+          videoRef.current.onloadedmetadata = () => {
+            console.log("Video metadata loaded via event");
+            activateCamera();
+          };
+        }
       } else {
         console.error("Video ref not available");
         toast.error("Video element not ready");
