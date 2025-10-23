@@ -791,6 +791,550 @@ class MoodMeshMeditationTest:
             print("⚠️  Some meditation tests FAILED!")
             return False
 
+class MoodMeshExerciseTrainerTest:
+    def __init__(self):
+        self.base_url = BACKEND_URL
+        self.test_user_id = None
+        self.auth_token = None
+        self.test_username = f"exercise_test_user_{int(time.time())}"
+        self.test_password = "testpass123"
+        self.session_id = None
+        
+    def log_test(self, test_name, status, message=""):
+        """Log test results"""
+        status_symbol = "✅" if status else "❌"
+        print(f"{status_symbol} {test_name}: {message}")
+        
+    def register_test_user(self):
+        """Register a test user for exercise testing"""
+        try:
+            response = requests.post(f"{self.base_url}/auth/register", json={
+                "username": self.test_username,
+                "password": self.test_password
+            })
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.test_user_id = data["user_id"]
+                self.auth_token = data["access_token"]
+                self.log_test("Exercise User Registration", True, f"Created user: {self.test_username}")
+                return True
+            else:
+                self.log_test("Exercise User Registration", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Exercise User Registration", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_list_all(self):
+        """Test GET /api/exercises/list - Get all exercises"""
+        try:
+            response = requests.get(f"{self.base_url}/exercises/list")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "count" not in data or "exercises" not in data:
+                    self.log_test("Get Exercise List - Structure", False, "Missing 'count' or 'exercises' key")
+                    return False
+                
+                exercises = data["exercises"]
+                
+                # Should return 12 exercises
+                if len(exercises) != 12:
+                    self.log_test("Get Exercise List - Count", False, f"Expected 12 exercises, got {len(exercises)}")
+                    return False
+                
+                # Check first exercise structure
+                first_exercise = exercises[0]
+                required_keys = ["id", "name", "description", "category", "difficulty", "target_muscles", 
+                               "video_url", "form_tips", "calories_per_rep"]
+                missing_keys = [key for key in required_keys if key not in first_exercise]
+                
+                if missing_keys:
+                    self.log_test("Get Exercise List - Exercise Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify categories exist
+                categories = set(ex["category"] for ex in exercises)
+                expected_categories = {"strength", "cardio", "yoga"}
+                
+                if not expected_categories.issubset(categories):
+                    missing_cats = expected_categories - categories
+                    self.log_test("Get Exercise List - Categories", False, f"Missing categories: {missing_cats}")
+                    return False
+                
+                # Verify difficulties exist
+                difficulties = set(ex["difficulty"] for ex in exercises)
+                expected_difficulties = {"beginner", "intermediate", "advanced"}
+                
+                if not expected_difficulties.issubset(difficulties):
+                    missing_diffs = expected_difficulties - difficulties
+                    self.log_test("Get Exercise List - Difficulties", False, f"Missing difficulties: {missing_diffs}")
+                    return False
+                
+                self.log_test("Get Exercise List (All)", True, f"Successfully returned {len(exercises)} exercises")
+                return True
+            else:
+                self.log_test("Get Exercise List (All)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise List (All)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_list_filtered_category(self):
+        """Test GET /api/exercises/list?category=strength - Filter by category"""
+        try:
+            response = requests.get(f"{self.base_url}/exercises/list?category=strength")
+            
+            if response.status_code == 200:
+                data = response.json()
+                exercises = data["exercises"]
+                
+                # All exercises should be strength category
+                for exercise in exercises:
+                    if exercise["category"] != "strength":
+                        self.log_test("Get Exercise List (Strength)", False, f"Found non-strength exercise: {exercise['category']}")
+                        return False
+                
+                # Should have 4 strength exercises
+                if len(exercises) != 4:
+                    self.log_test("Get Exercise List (Strength)", False, f"Expected 4 strength exercises, got {len(exercises)}")
+                    return False
+                
+                self.log_test("Get Exercise List (Strength)", True, f"Successfully filtered {len(exercises)} strength exercises")
+                return True
+            else:
+                self.log_test("Get Exercise List (Strength)", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise List (Strength)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_list_filtered_difficulty(self):
+        """Test GET /api/exercises/list?difficulty=beginner - Filter by difficulty"""
+        try:
+            response = requests.get(f"{self.base_url}/exercises/list?difficulty=beginner")
+            
+            if response.status_code == 200:
+                data = response.json()
+                exercises = data["exercises"]
+                
+                # All exercises should be beginner difficulty
+                for exercise in exercises:
+                    if exercise["difficulty"] != "beginner":
+                        self.log_test("Get Exercise List (Beginner)", False, f"Found non-beginner exercise: {exercise['difficulty']}")
+                        return False
+                
+                # Should have beginner exercises
+                if len(exercises) == 0:
+                    self.log_test("Get Exercise List (Beginner)", False, "No beginner exercises found")
+                    return False
+                
+                self.log_test("Get Exercise List (Beginner)", True, f"Successfully filtered {len(exercises)} beginner exercises")
+                return True
+            else:
+                self.log_test("Get Exercise List (Beginner)", False, f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise List (Beginner)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_details_valid(self):
+        """Test GET /api/exercises/{exercise_id} - Get specific exercise details"""
+        try:
+            # Test with push-ups
+            response = requests.get(f"{self.base_url}/exercises/push-ups")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_keys = ["id", "name", "description", "category", "difficulty", "target_muscles", 
+                               "video_url", "form_tips", "calories_per_rep", "key_points", "pose_requirements"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Get Exercise Details (Valid) - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify it's the correct exercise
+                if data["id"] != "push-ups" or data["name"] != "Push-Ups":
+                    self.log_test("Get Exercise Details (Valid) - ID Match", False, "Exercise ID/name doesn't match")
+                    return False
+                
+                # Check form_tips is a list
+                if not isinstance(data["form_tips"], list) or len(data["form_tips"]) == 0:
+                    self.log_test("Get Exercise Details (Valid) - Form Tips", False, "form_tips should be a non-empty list")
+                    return False
+                
+                # Check target_muscles is a list
+                if not isinstance(data["target_muscles"], list) or len(data["target_muscles"]) == 0:
+                    self.log_test("Get Exercise Details (Valid) - Target Muscles", False, "target_muscles should be a non-empty list")
+                    return False
+                
+                self.log_test("Get Exercise Details (Valid)", True, f"Successfully retrieved details for {data['name']}")
+                return True
+            else:
+                self.log_test("Get Exercise Details (Valid)", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise Details (Valid)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_details_invalid(self):
+        """Test GET /api/exercises/{exercise_id} - Invalid exercise ID"""
+        try:
+            response = requests.get(f"{self.base_url}/exercises/invalid-exercise-id")
+            
+            if response.status_code == 404:
+                self.log_test("Get Exercise Details (Invalid)", True, "Correctly returns 404 for invalid exercise ID")
+                return True
+            else:
+                self.log_test("Get Exercise Details (Invalid)", False, f"Expected 404, got {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise Details (Invalid)", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_start_exercise_session(self):
+        """Test POST /api/exercises/session/start - Start exercise session"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Start Exercise Session - No User", False, "No test user available")
+                return False
+            
+            session_data = {
+                "user_id": self.test_user_id,
+                "exercise_id": "push-ups",
+                "target_reps": 10,
+                "used_ai_coach": True
+            }
+            
+            response = requests.post(f"{self.base_url}/exercises/session/start", json=session_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["session_id", "exercise", "target_reps", "message"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Start Exercise Session - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Verify data matches request
+                if (data["target_reps"] != session_data["target_reps"] or
+                    data["exercise"]["id"] != session_data["exercise_id"]):
+                    self.log_test("Start Exercise Session - Data Mismatch", False, "Response data doesn't match request")
+                    return False
+                
+                # Store session ID for later tests
+                self.session_id = data["session_id"]
+                
+                self.log_test("Start Exercise Session", True, f"Successfully started session: {data['session_id']}")
+                return True
+            else:
+                self.log_test("Start Exercise Session", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Start Exercise Session", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_update_exercise_session(self):
+        """Test POST /api/exercises/session/update - Update session progress"""
+        try:
+            if not self.session_id:
+                self.log_test("Update Exercise Session - No Session", False, "No session ID available")
+                return False
+            
+            update_data = {
+                "session_id": self.session_id,
+                "completed_reps": 5,
+                "form_accuracy": 85.0,
+                "feedback_notes": ["Good form", "Keep back straight"]
+            }
+            
+            response = requests.post(f"{self.base_url}/exercises/session/update", json=update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "message" not in data or "completed_reps" not in data:
+                    self.log_test("Update Exercise Session - Structure", False, "Missing message or completed_reps")
+                    return False
+                
+                # Verify completed_reps matches
+                if data["completed_reps"] != update_data["completed_reps"]:
+                    self.log_test("Update Exercise Session - Reps Mismatch", False, f"Expected {update_data['completed_reps']}, got {data['completed_reps']}")
+                    return False
+                
+                self.log_test("Update Exercise Session", True, f"Successfully updated session to {data['completed_reps']} reps")
+                return True
+            else:
+                self.log_test("Update Exercise Session", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Update Exercise Session", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_complete_exercise_session(self):
+        """Test POST /api/exercises/session/complete - Complete session and award stars"""
+        try:
+            if not self.session_id:
+                self.log_test("Complete Exercise Session - No Session", False, "No session ID available")
+                return False
+            
+            complete_data = {
+                "session_id": self.session_id,
+                "completed_reps": 10,
+                "duration_seconds": 120,
+                "form_accuracy": 90.0
+            }
+            
+            response = requests.post(f"{self.base_url}/exercises/session/complete", json=complete_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["message", "completed_reps", "target_reps", "duration_seconds", 
+                               "calories_burned", "stars_awarded", "form_accuracy"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Complete Exercise Session - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should award 3 stars
+                if data["stars_awarded"] != 3:
+                    self.log_test("Complete Exercise Session - Stars", False, f"Expected 3 stars, got {data['stars_awarded']}")
+                    return False
+                
+                # Verify completed_reps matches
+                if data["completed_reps"] != complete_data["completed_reps"]:
+                    self.log_test("Complete Exercise Session - Reps", False, f"Expected {complete_data['completed_reps']}, got {data['completed_reps']}")
+                    return False
+                
+                # Calories should be calculated (10 reps * 0.5 calories_per_rep = 5.0)
+                expected_calories = 5.0
+                if abs(data["calories_burned"] - expected_calories) > 0.1:
+                    self.log_test("Complete Exercise Session - Calories", False, f"Expected ~{expected_calories}, got {data['calories_burned']}")
+                    return False
+                
+                self.log_test("Complete Exercise Session", True, f"Successfully completed session, earned {data['stars_awarded']} stars, burned {data['calories_burned']} calories")
+                return True
+            else:
+                self.log_test("Complete Exercise Session", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Complete Exercise Session", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_history(self):
+        """Test GET /api/exercises/history/{user_id} - Get user's exercise history"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Get Exercise History - No User", False, "No test user available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/exercises/history/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                if "count" not in data or "sessions" not in data:
+                    self.log_test("Get Exercise History - Structure", False, "Missing 'count' or 'sessions' key")
+                    return False
+                
+                sessions = data["sessions"]
+                
+                # Should have at least 1 session if we completed one
+                if self.session_id and len(sessions) == 0:
+                    self.log_test("Get Exercise History - Session Count", False, "Expected at least 1 session")
+                    return False
+                
+                # Check first session structure if exists
+                if sessions:
+                    first_session = sessions[0]
+                    required_keys = ["session_id", "user_id", "exercise_id", "exercise_name", 
+                                   "target_reps", "completed_reps", "used_ai_coach", "session_start"]
+                    missing_keys = [key for key in required_keys if key not in first_session]
+                    
+                    if missing_keys:
+                        self.log_test("Get Exercise History - Session Structure", False, f"Missing keys: {missing_keys}")
+                        return False
+                    
+                    # Verify user_id matches
+                    if first_session["user_id"] != self.test_user_id:
+                        self.log_test("Get Exercise History - User ID", False, "Session user_id doesn't match")
+                        return False
+                
+                self.log_test("Get Exercise History", True, f"Successfully retrieved {len(sessions)} exercise sessions")
+                return True
+            else:
+                self.log_test("Get Exercise History", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise History", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_get_exercise_progress(self):
+        """Test GET /api/exercises/progress/{user_id} - Get user's progress statistics"""
+        try:
+            if not self.test_user_id:
+                self.log_test("Get Exercise Progress - No User", False, "No test user available")
+                return False
+            
+            response = requests.get(f"{self.base_url}/exercises/progress/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check response structure
+                required_keys = ["total_sessions", "total_reps", "total_calories", "total_minutes", 
+                               "exercises_tried", "favorite_exercise", "average_form_accuracy", "current_streak"]
+                missing_keys = [key for key in required_keys if key not in data]
+                
+                if missing_keys:
+                    self.log_test("Get Exercise Progress - Structure", False, f"Missing keys: {missing_keys}")
+                    return False
+                
+                # Should have at least 1 session if we completed one
+                if self.session_id and data["total_sessions"] == 0:
+                    self.log_test("Get Exercise Progress - Session Count", False, "Expected at least 1 completed session")
+                    return False
+                
+                # Verify data types
+                if not isinstance(data["total_sessions"], int) or data["total_sessions"] < 0:
+                    self.log_test("Get Exercise Progress - Total Sessions Type", False, "Invalid total_sessions value")
+                    return False
+                
+                if not isinstance(data["total_reps"], int) or data["total_reps"] < 0:
+                    self.log_test("Get Exercise Progress - Total Reps Type", False, "Invalid total_reps value")
+                    return False
+                
+                if not isinstance(data["current_streak"], int) or data["current_streak"] < 0:
+                    self.log_test("Get Exercise Progress - Current Streak Type", False, "Invalid current_streak value")
+                    return False
+                
+                # If we completed a session, check values
+                if self.session_id and data["total_sessions"] > 0:
+                    if data["total_reps"] != 10:  # We completed 10 reps
+                        self.log_test("Get Exercise Progress - Reps Count", False, f"Expected 10 total reps, got {data['total_reps']}")
+                        return False
+                    
+                    if abs(data["total_calories"] - 5.0) > 0.1:  # 10 reps * 0.5 = 5.0 calories
+                        self.log_test("Get Exercise Progress - Calories Count", False, f"Expected ~5.0 calories, got {data['total_calories']}")
+                        return False
+                    
+                    if data["exercises_tried"] != 1:  # We tried 1 exercise (push-ups)
+                        self.log_test("Get Exercise Progress - Exercises Tried", False, f"Expected 1 exercise tried, got {data['exercises_tried']}")
+                        return False
+                    
+                    if data["favorite_exercise"] != "Push-Ups":  # Should be push-ups
+                        self.log_test("Get Exercise Progress - Favorite Exercise", False, f"Expected 'Push-Ups', got {data['favorite_exercise']}")
+                        return False
+                
+                self.log_test("Get Exercise Progress", True, f"Progress: {data['total_sessions']} sessions, {data['total_reps']} reps, {data['total_calories']} calories")
+                return True
+            else:
+                self.log_test("Get Exercise Progress", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Get Exercise Progress", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_exercise_endpoints_availability(self):
+        """Test if all exercise endpoints are available"""
+        try:
+            endpoints = [
+                "/exercises/list",
+                "/exercises/push-ups",
+                f"/exercises/history/{str(uuid.uuid4())}",
+                f"/exercises/progress/{str(uuid.uuid4())}"
+            ]
+            
+            all_available = True
+            for endpoint in endpoints:
+                response = requests.get(f"{self.base_url}{endpoint}")
+                if response.status_code not in [200, 404]:
+                    self.log_test(f"Endpoint {endpoint}", False, f"Status: {response.status_code}")
+                    all_available = False
+            
+            if all_available:
+                self.log_test("Exercise Endpoints Availability", True, "All endpoints are accessible")
+                return True
+            else:
+                self.log_test("Exercise Endpoints Availability", False, "Some endpoints are not accessible")
+                return False
+        except Exception as e:
+            self.log_test("Exercise Endpoints Availability", False, f"Exception: {str(e)}")
+            return False
+    
+    def run_all_tests(self):
+        """Run all exercise trainer tests"""
+        print("=" * 60)
+        print("🏋️ EXERCISE TRAINER BACKEND TESTING")
+        print("=" * 60)
+        
+        results = {}
+        
+        # Test endpoint availability first
+        results["endpoints_availability"] = self.test_exercise_endpoints_availability()
+        
+        # Test exercise list endpoints
+        results["exercise_list_all"] = self.test_get_exercise_list_all()
+        results["exercise_list_strength"] = self.test_get_exercise_list_filtered_category()
+        results["exercise_list_beginner"] = self.test_get_exercise_list_filtered_difficulty()
+        
+        # Test exercise details endpoints
+        results["exercise_details_valid"] = self.test_get_exercise_details_valid()
+        results["exercise_details_invalid"] = self.test_get_exercise_details_invalid()
+        
+        # Register test user for session tests
+        if self.register_test_user():
+            results["user_registration"] = True
+            
+            # Test session workflow
+            results["start_session"] = self.test_start_exercise_session()
+            results["update_session"] = self.test_update_exercise_session()
+            results["complete_session"] = self.test_complete_exercise_session()
+            results["exercise_history"] = self.test_get_exercise_history()
+            results["exercise_progress"] = self.test_get_exercise_progress()
+        else:
+            results["user_registration"] = False
+            results["start_session"] = False
+            results["update_session"] = False
+            results["complete_session"] = False
+            results["exercise_history"] = False
+            results["exercise_progress"] = False
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("📊 EXERCISE TRAINER TEST SUMMARY")
+        print("=" * 60)
+        
+        passed = sum(1 for result in results.values() if result)
+        total = len(results)
+        
+        for test_name, result in results.items():
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} {test_name.replace('_', ' ').title()}")
+        
+        print(f"\n🎯 Overall: {passed}/{total} tests passed")
+        
+        if passed == total:
+            print("🎉 All exercise trainer tests PASSED!")
+            return True
+        else:
+            print("⚠️  Some exercise trainer tests FAILED!")
+            return False
+
 class MoodMeshMusicTherapyTest:
     def __init__(self):
         self.base_url = BACKEND_URL
