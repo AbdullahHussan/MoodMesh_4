@@ -232,6 +232,22 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           </Link>
+
+          <Link to="/exercise-trainer" className="block" data-testid="exercise-trainer-card">
+            <Card className="h-full border-2 hover:border-red-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-red-100 rounded-full">
+                    <Dumbbell className="w-8 h-8 text-red-600" />
+                  </div>
+                  <CardTitle className="text-xl">Exercise Trainer</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  AI-powered form tracking for yoga, stretching, and exercises with real-time guidance.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Card className="mt-6 border-2" data-testid="profile-summary">
