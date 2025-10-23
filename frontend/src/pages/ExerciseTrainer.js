@@ -841,8 +841,14 @@ const ExerciseTrainer = () => {
               {useAICoach && !cameraActive && (
                 <Card className="border-yellow-500 border-2">
                   <CardContent className="p-6 text-center">
-                    <Camera className="w-12 h-12 mx-auto mb-3 text-yellow-600" />
-                    <p className="text-gray-700 font-semibold">AI Coach camera will activate when you start the session</p>
+                    <Camera className="w-12 h-12 mx-auto mb-3 text-yellow-600 animate-pulse" />
+                    <p className="text-gray-700 font-semibold mb-3">Activating AI Coach Camera...</p>
+                    <p className="text-sm text-gray-600">Please allow camera permissions if prompted</p>
+                    {isExercising && (
+                      <p className="text-xs text-red-600 mt-2">
+                        If camera doesn't activate, check browser permissions or refresh the page
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               )}
