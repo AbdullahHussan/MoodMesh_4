@@ -292,6 +292,42 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/therapist/insights/{user_id} endpoint that generates AI-powered comprehensive therapeutic insights using Gemini. Analyzes: (1) Last 10 therapy sessions, (2) Last 20 therapy conversations, (3) Last 15 mood logs, (4) Last 10 mood check-ins. Returns detailed AI report including: overall progress assessment, key themes, strengths identified, areas for growth, recommended CBT/DBT/mindfulness techniques, and personalized encouragement. Provides stats: total_sessions, total_conversations, total_mood_logs, total_checkins."
+  
+  - task: "Exercise Trainer API - Exercise Library"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive exercise library with 12 exercises: (1) Strength: Push-ups, Squats, Lunges, Planks, (2) Cardio: Jumping Jacks, High Knees, Mountain Climbers, Burpees, (3) Yoga: Downward Dog, Warrior I, Tree Pose, Chair Pose. Each exercise includes: name, description, category, difficulty, target muscles, YouTube video URL, form tips, key tracking points, and pose requirements (angle ranges for proper form detection). GET /api/exercises/list with optional category/difficulty filters, GET /api/exercises/{exercise_id} for details."
+  
+  - task: "Exercise Trainer API - Session Management"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created session tracking endpoints: (1) POST /api/exercises/session/start - starts session with exercise_id, target_reps, used_ai_coach flag, (2) POST /api/exercises/session/update - updates session with completed_reps, form_accuracy, feedback_notes during AI coach real-time tracking, (3) POST /api/exercises/session/complete - completes session, calculates calories burned based on exercise type, awards 3 wellness stars, saves duration and form accuracy. Sessions stored in exercise_sessions collection."
+  
+  - task: "Exercise Trainer API - Progress & History"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created progress tracking endpoints: (1) GET /api/exercises/history/{user_id} - returns user's exercise sessions with limit parameter (default 20), sorted by most recent, (2) GET /api/exercises/progress/{user_id} - calculates comprehensive statistics including: total sessions, total reps, total calories burned, total minutes exercised, exercises tried count, favorite exercise (most sessions), average form accuracy for AI coach sessions, current streak (consecutive days), and recent 5 sessions. Streak calculation checks for consecutive daily exercise activity."
 
 frontend:
   - task: "Analytics Dashboard Page"
