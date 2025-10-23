@@ -159,7 +159,7 @@ backend:
         comment: "Created Spotify OAuth endpoints using spotipy library: GET /api/music/spotify/login (generates auth URL), GET /api/music/spotify/callback (exchanges code for tokens), POST /api/music/spotify/refresh (refreshes access token), GET /api/music/spotify/profile (gets user profile and premium status). Configured with Spotify credentials from user."
       - working: "needs_user_action"
         agent: "main"
-        comment: "REQUIRES USER ACTION: User must register the redirect URI in Spotify Developer Dashboard. Current redirect URI: https://feature-wizard-3.preview.emergentagent.com/music. Error shows 'INVALID_CLIENT: Invalid redirect URI' which means the Spotify App settings don't include this exact URL. Added better error handling in frontend to catch and display OAuth errors."
+        comment: "REQUIRES USER ACTION: User must register the redirect URI in Spotify Developer Dashboard. Current redirect URI: https://yoga-pose-guide.preview.emergentagent.com/music. Error shows 'INVALID_CLIENT: Invalid redirect URI' which means the Spotify App settings don't include this exact URL. Added better error handling in frontend to catch and display OAuth errors."
       - working: true
         agent: "testing"
         comment: "✅ SUCCESSFULLY REMOVED: All Spotify OAuth endpoints have been completely removed from the backend. Tested endpoints /api/music/spotify/login, /api/music/spotify/callback, /api/music/spotify/refresh, /api/music/spotify/profile all return 404 Not Found as expected. Music therapy feature removal completed successfully."
