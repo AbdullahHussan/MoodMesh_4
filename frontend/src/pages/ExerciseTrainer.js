@@ -302,6 +302,68 @@ const ExerciseTrainer = () => {
     ctx.shadowBlur = 0;
   };
 
+  const drawOverlayUI = (ctx) => {
+    if (!isExercising) return;
+    
+    const canvas = canvasRef.current;
+    
+    // Draw rep counter (top right)
+    const progress = completedReps / targetReps;
+    const counterBg = progress >= 1 ? '#10B981' : progress >= 0.5 ? '#3B82F6' : '#6366F1';
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(canvas.width - 180, 10, 170, 100);
+    
+    ctx.fillStyle = counterBg;
+    ctx.fillRect(canvas.width - 180, 10, 170, 8);
+    ctx.fillRect(canvas.width - 180, 10, 170 * progress, 8);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(completedReps, canvas.width - 95, 65);
+    
+    ctx.font = '16px Arial';
+    ctx.fillText(`of ${targetReps} reps`, canvas.width - 95, 90);
+    
+    // Draw form feedback (bottom center)
+    if (formFeedback.length > 0) {
+      const feedback = formFeedback[formFeedback.length - 1];
+      const isGood = feedback.includes('Perfect') || feedback.includes('Great') || feedback.includes('Excellent') || feedback.includes('Good');
+      const isBad = feedback.includes('incorrect') || feedback.includes('Wrong') || feedback.includes('too');
+      
+      const bgColor = isGood ? 'rgba(16, 185, 129, 0.9)' : isBad ? 'rgba(239, 68, 68, 0.9)' : 'rgba(251, 191, 36, 0.9)';
+      const icon = isGood ? '✓' : isBad ? '✗' : '⚠';
+      
+      ctx.font = '18px Arial';
+      const textWidth = ctx.measureText(feedback).width;
+      const boxWidth = textWidth + 80;
+      const boxX = (canvas.width - boxWidth) / 2;
+      
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(boxX, canvas.height - 80, boxWidth, 60);
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(icon, boxX + 15, canvas.height - 45);
+      
+      ctx.font = '18px Arial';
+      ctx.fillText(feedback, boxX + 50, canvas.height - 45);
+    }
+    
+    // Draw timer (top left)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(10, 10, 120, 50);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(formatTime(timer), 20, 43);
+    
+    ctx.textAlign = 'start'; // Reset
+  };
+
   const calculateAngle = (a, b, c) => {
     const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
     let angle = Math.abs(radians * 180.0 / Math.PI);
