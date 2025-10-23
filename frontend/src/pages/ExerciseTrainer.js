@@ -413,31 +413,50 @@ const ExerciseTrainer = () => {
     
     const avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2;
     
+    // Check body alignment (back should be straight)
+    const shoulder = landmarks[11];
+    const hip = landmarks[23];
+    const knee = landmarks[25];
+    const backAngle = calculateAngle(shoulder, hip, knee);
+    
     // Rep counting logic
     if (avgElbowAngle < 100 && !repCountStateRef.current.repInProgress) {
       // Down position
       repCountStateRef.current.repInProgress = true;
       repCountStateRef.current.lastPosition = 'down';
-      setFormFeedback(["Good! Going down..."]);
+      
+      if (avgElbowAngle < 90) {
+        setFormFeedback(["Perfect depth! ✓"]);
+      } else {
+        setFormFeedback(["Good! Go a bit lower"]);
+      }
+      
+      // Check form
+      if (backAngle < 160) {
+        setFormFeedback(["Keep your back straight!"]);
+      }
     } else if (avgElbowAngle > 160 && repCountStateRef.current.lastPosition === 'down') {
       // Up position - count rep
       setCompletedReps(prev => {
         const newCount = prev + 1;
         if (newCount >= targetReps) {
-          // Auto-complete when target reached
           setTimeout(() => completeSession(), 500);
         }
         return newCount;
       });
       repCountStateRef.current.repInProgress = false;
       repCountStateRef.current.lastPosition = 'up';
-      setFormFeedback(["Great rep! ✓"]);
+      setFormFeedback(["Excellent rep! ✓"]);
       toast.success(`Rep ${completedReps + 1} completed!`, { duration: 1000 });
     }
     
-    // Form feedback
-    if (avgElbowAngle < 90) {
-      setFormFeedback(["Perfect depth! Keep it up!"]);
+    // Continuous form feedback
+    if (avgElbowAngle > 120 && avgElbowAngle < 160 && !repCountStateRef.current.repInProgress) {
+      if (backAngle < 160) {
+        setFormFeedback(["⚠ Keep back straight"]);
+      } else {
+        setFormFeedback(["Ready for next rep"]);
+      }
     }
   };
 
