@@ -205,7 +205,20 @@ const ExerciseTrainer = () => {
   };
 
   const detectPose = async () => {
-    if (!poseDetectionRef.current || !videoRef.current) {
+    if (!poseDetectionRef.current) {
+      console.log("Pose detection not initialized yet");
+      return;
+    }
+    
+    if (!videoRef.current) {
+      console.log("Video ref not available");
+      return;
+    }
+    
+    if (videoRef.current.readyState < 2) {
+      console.log("Video not ready yet, readyState:", videoRef.current.readyState);
+      // Continue loop to wait for video
+      requestAnimationFrame(detectPose);
       return;
     }
     
