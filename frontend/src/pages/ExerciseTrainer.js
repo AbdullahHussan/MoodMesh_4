@@ -208,7 +208,7 @@ const ExerciseTrainer = () => {
   };
 
   const onPoseResults = (results) => {
-    if (!canvasRef.current || !results.poseLandmarks) return;
+    if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -221,11 +221,25 @@ const ExerciseTrainer = () => {
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     }
     
-    // Draw pose landmarks
-    drawLandmarks(ctx, results.poseLandmarks);
+    // Draw pose landmarks if detected
+    if (results.poseLandmarks) {
+      drawLandmarks(ctx, results.poseLandmarks);
+      
+      // Analyze form and count reps only if exercising
+      if (isExercising && selectedExercise) {
+        analyzeFormAndCountReps(results.poseLandmarks);
+      }
+    } else {
+      // No pose detected - show message
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+      ctx.fillRect(10, 10, 300, 50);
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('⚠️ No body detected', 20, 40);
+    }
     
-    // Analyze form and count reps
-    analyzeFormAndCountReps(results.poseLandmarks);
+    // Draw overlay UI (rep counter, feedback)
+    drawOverlayUI(ctx);
   };
 
   const drawLandmarks = (ctx, landmarks) => {
