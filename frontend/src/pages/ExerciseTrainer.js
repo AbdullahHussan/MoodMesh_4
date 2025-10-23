@@ -476,11 +476,25 @@ const ExerciseTrainer = () => {
     
     const avgKneeAngle = (leftKneeAngle + rightKneeAngle) / 2;
     
+    // Check if knees are going past toes (not ideal form)
+    const leftKnee = landmarks[25];
+    const leftAnkle = landmarks[27];
+    const kneePastToes = leftKnee.x > leftAnkle.x + 0.05;
+    
     // Rep counting
     if (avgKneeAngle < 110 && !repCountStateRef.current.repInProgress) {
       repCountStateRef.current.repInProgress = true;
       repCountStateRef.current.lastPosition = 'down';
-      setFormFeedback(["Nice squat depth!"]);
+      
+      if (avgKneeAngle < 90) {
+        setFormFeedback(["Perfect squat depth! ✓"]);
+      } else {
+        setFormFeedback(["Good depth! Keep going"]);
+      }
+      
+      if (kneePastToes) {
+        setFormFeedback(["⚠ Keep knees behind toes"]);
+      }
     } else if (avgKneeAngle > 160 && repCountStateRef.current.lastPosition === 'down') {
       setCompletedReps(prev => {
         const newCount = prev + 1;
@@ -493,6 +507,15 @@ const ExerciseTrainer = () => {
       repCountStateRef.current.lastPosition = 'up';
       setFormFeedback(["Excellent! ✓"]);
       toast.success(`Rep ${completedReps + 1} completed!`, { duration: 1000 });
+    }
+    
+    // Continuous feedback
+    if (avgKneeAngle > 120 && avgKneeAngle < 160 && !repCountStateRef.current.repInProgress) {
+      if (kneePastToes) {
+        setFormFeedback(["⚠ Sit back more"]);
+      } else {
+        setFormFeedback(["Ready for next squat"]);
+      }
     }
   };
 
