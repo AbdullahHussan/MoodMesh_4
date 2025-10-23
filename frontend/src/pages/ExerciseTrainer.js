@@ -152,13 +152,14 @@ const ExerciseTrainer = () => {
 
   const initPoseDetection = async () => {
     // Load MediaPipe Pose via CDN
-    if (typeof Pose === 'undefined') {
+    if (typeof window.Pose === 'undefined') {
       toast.error("Pose detection library not loaded. Please refresh the page.");
+      console.error("MediaPipe Pose not found on window object");
       return;
     }
     
     try {
-      const pose = new Pose({
+      const pose = new window.Pose({
         locateFile: (file) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
         }
@@ -176,23 +177,34 @@ const ExerciseTrainer = () => {
       pose.onResults(onPoseResults);
       poseDetectionRef.current = pose;
       
+      // Ensure canvas is properly sized
+      if (canvasRef.current) {
+        canvasRef.current.width = 640;
+        canvasRef.current.height = 480;
+      }
+      
       // Start detection loop
       detectPose();
+      toast.success("AI Coach activated!");
     } catch (error) {
       console.error("Failed to initialize pose detection", error);
+      toast.error("Failed to initialize AI Coach: " + error.message);
     }
   };
 
   const detectPose = async () => {
-    if (!poseDetectionRef.current || !videoRef.current || !isExercising) {
+    if (!poseDetectionRef.current || !videoRef.current) {
       return;
     }
     
-    await poseDetectionRef.current.send({ image: videoRef.current });
-    
-    if (isExercising) {
-      requestAnimationFrame(detectPose);
+    try {
+      await poseDetectionRef.current.send({ image: videoRef.current });
+    } catch (error) {
+      console.error("Pose detection error:", error);
     }
+    
+    // Continue loop regardless of isExercising to maintain smooth video
+    requestAnimationFrame(detectPose);
   };
 
   const onPoseResults = (results) => {
