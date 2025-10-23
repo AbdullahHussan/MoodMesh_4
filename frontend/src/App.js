@@ -1282,6 +1282,7 @@ function App() {
           <Route path="/community/:communityId" element={<CommunityRoom />} />
           <Route path="/crisis-support" element={<CrisisSupport />} />
           <Route path="/resources" element={<Resources />} />
+          <Route path="/exercise-trainer" element={<ExerciseTrainer />} />
         </Routes>
       </BrowserRouter>
     </div>
