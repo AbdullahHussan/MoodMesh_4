@@ -2220,28 +2220,69 @@ Please take immediate action if this person is known to you.
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
         
-        # Send via Gmail SMTP (or any free SMTP service)
-        # Using localhost for now - will work if sendmail/postfix configured
-        # Falls back gracefully if email fails
-        try:
-            with smtplib.SMTP('localhost', 25) as server:
-                server.send_message(msg)
-                logging.info(f"✅ Emergency alert email sent successfully for user {user_id}")
-                return True
-        except:
-            # Fallback: Try Gmail SMTP if available
-            gmail_user = os.environ.get('GMAIL_USER')
-            gmail_pass = os.environ.get('GMAIL_APP_PASSWORD')
-            
-            if gmail_user and gmail_pass:
+        # Try Gmail SMTP with environment credentials
+        gmail_user = os.environ.get('GMAIL_USER')
+        gmail_pass = os.environ.get('GMAIL_APP_PASSWORD')
+        
+        if gmail_user and gmail_pass:
+            try:
                 with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                     server.login(gmail_user, gmail_pass)
                     server.send_message(msg)
                     logging.info(f"✅ Emergency alert email sent via Gmail for user {user_id}")
                     return True
-            else:
-                logging.warning(f"⚠️ Email not configured - alert logged to database only for user {user_id}")
-                return False
+            except Exception as e:
+                logging.error(f"❌ Gmail SMTP failed: {str(e)}")
+        
+        # Fallback: Try localhost SMTP
+        try:
+            with smtplib.SMTP('localhost', 25, timeout=5) as server:
+                server.send_message(msg)
+                logging.info(f"✅ Emergency alert email sent successfully for user {user_id}")
+                return True
+        except Exception as e:
+            logging.warning(f"⚠️ Localhost SMTP failed: {str(e)}")
+        
+        # If all else fails, use simple HTTP POST to webhook/logging service
+        # This ensures alerts are ALWAYS captured even if email fails
+        try:
+            import requests
+            webhook_url = os.environ.get('ALERT_WEBHOOK_URL')
+            if webhook_url:
+                requests.post(webhook_url, json={
+                    'subject': subject,
+                    'body': body,
+                    'to': EMERGENCY_ALERT_EMAIL,
+                    'severity': severity,
+                    'user_id': user_id,
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                }, timeout=10)
+                logging.info(f"✅ Alert sent via webhook for user {user_id}")
+                return True
+        except Exception as e:
+            logging.warning(f"⚠️ Webhook alert failed: {str(e)}")
+        
+        # Last resort: Print to console/logs (for debugging)
+        logging.critical(f"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     🚨 EMERGENCY MENTAL HEALTH ALERT 🚨                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+TO: {EMERGENCY_ALERT_EMAIL}
+SEVERITY: {severity.upper()}
+USER: {user_id}
+TIME: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+CRISIS: {crisis_context[:200]}...
+
+ACTIONS: {ai_message[:200]}...
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚠️  EMAIL DELIVERY FAILED - ALERT LOGGED TO DATABASE & CONSOLE ⚠️           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+        """)
+        
+        return False
                 
     except Exception as e:
         logging.error(f"❌ Failed to send emergency email: {str(e)}")
