@@ -75,9 +75,17 @@ const EmergencyPopup = ({
           details: data.call_details
         });
       } else {
+        // Handle specific error cases
+        let errorMessage = data.detail || "Failed to initiate call";
+        
+        // If Plivo not configured, provide helpful message
+        if (response.status === 503 || errorMessage.includes("not configured")) {
+          errorMessage = "📞 Voice calling requires setup. Please follow the guide in VOICE_CALLING_SETUP.md to activate this feature with a FREE Plivo trial account.";
+        }
+        
         setCallStatus({
           success: false,
-          message: data.detail || "Failed to initiate call"
+          message: errorMessage
         });
       }
     } catch (error) {
