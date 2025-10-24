@@ -320,28 +320,33 @@ const ExerciseTrainer = () => {
     }
     
     if (videoRef.current.readyState < 2) {
-      console.log("Video not ready yet, readyState:", videoRef.current.readyState);
       // Continue loop to wait for video
       animationFrameRef.current = requestAnimationFrame(detectPose);
       return;
     }
     
-    try {
-      // Check if pose detection is ready before sending
-      if (poseDetectionRef.current && typeof poseDetectionRef.current.send === 'function') {
-        await poseDetectionRef.current.send({ image: videoRef.current });
-      } else {
-        console.warn("Pose detection send method not available yet");
-      }
-    } catch (error) {
-      console.error("Pose detection error:", error);
-      // Don't show error toast on every frame, just log it
-      if (error.message && (error.message.includes('data') || error.message.includes('model'))) {
-        console.error("⚠️ Model loading issue - MediaPipe files may not be accessible from CDN");
-        toast.error("AI Coach initialization failed. Try refreshing the page.");
-        isDetectionActiveRef.current = false;
-        stopCamera();
-        return;
+    // HEAVY THROTTLING: Only process every 5th frame to reduce memory usage
+    frameCountRef.current++;
+    const shouldProcess = frameCountRef.current % 5 === 0;
+    
+    if (shouldProcess) {
+      try {
+        // Check if pose detection is ready before sending
+        if (poseDetectionRef.current && typeof poseDetectionRef.current.send === 'function') {
+          await poseDetectionRef.current.send({ image: videoRef.current });
+          lastProcessedFrameRef.current = frameCountRef.current;
+        }
+      } catch (error) {
+        console.error("Pose detection error:", error);
+        // On critical errors, stop everything
+        if (error.message && (error.message.includes('data') || error.message.includes('model') || error.message.includes('memory'))) {
+          console.error("⚠️ CRITICAL: Stopping AI Coach due to error");
+          toast.error("AI Coach stopped due to error. Please use manual mode.");
+          isDetectionActiveRef.current = false;
+          stopCamera();
+          setUseAICoach(false);
+          return;
+        }
       }
     }
     
