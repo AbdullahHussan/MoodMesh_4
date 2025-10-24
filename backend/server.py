@@ -32,7 +32,7 @@ genai.configure(api_key=os.environ['GEMINI_API_KEY'])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Emergency email configuration (hidden from user for safety)
-EMERGENCY_ALERT_EMAIL = "abdullahdeveloper4@gmail.com"
+EMERGENCY_ALERT_EMAIL = "ah3146952@gmail.com"
 
 # Socket.IO setup
 sio = socketio.AsyncServer(
