@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   AlertTriangle, Phone, MessageSquare, Heart, Shield, 
-  X, UserPlus, ExternalLink, Clock, MapPin 
+  X, UserPlus, ExternalLink, Clock, MapPin, PhoneCall 
 } from "lucide-react";
 
 const EmergencyPopup = ({ 
@@ -13,9 +13,13 @@ const EmergencyPopup = ({
   onClose, 
   emergencyData, 
   severity = "high", 
-  onAddContacts 
+  onAddContacts,
+  userId
 }) => {
   const [copied, setCopied] = useState(null);
+  const [calling, setCalling] = useState(false);
+  const [callStatus, setCallStatus] = useState(null);
+  const [showCallConfirm, setShowCallConfirm] = useState(false);
 
   if (!isOpen || !emergencyData) return null;
 
