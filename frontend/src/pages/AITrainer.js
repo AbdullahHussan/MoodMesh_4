@@ -268,6 +268,21 @@ const AITrainer = () => {
     ctx.font = "bold 24px Arial";
     ctx.fillText(`${repCount}/${targetReps}`, width - 110, 43);
 
+    // Debug: Knee angle display (left side, middle)
+    if (isExercising) {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(10, height / 2 - 40, 140, 80);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("Knee Angle:", 20, height / 2 - 15);
+      ctx.font = "bold 28px Arial";
+      ctx.fillText(`${currentAngle.toFixed(0)}°`, 20, height / 2 + 20);
+      ctx.font = "bold 12px Arial";
+      ctx.fillStyle = squatPhase === "squatting" ? "#fbbf24" : "#10b981";
+      ctx.fillText(squatPhase.toUpperCase(), 20, height / 2 + 35);
+    }
+
     // Form quality indicator (bottom-center)
     const formText = formQuality >= 80 ? "✓ Good Form" : "✗ Check Form";
     const formBgColor = formQuality >= 80 ? "rgba(16, 185, 129, 0.9)" : "rgba(239, 68, 68, 0.9)";
