@@ -980,6 +980,15 @@ const AITherapist = () => {
       {/* Mood Check-in Modal */}
       {showMoodCheckIn && <MoodCheckInModal onClose={() => setShowMoodCheckIn(false)} onSubmit={submitMoodCheckIn} />}
       
+      {/* AI-Powered Emergency Popup */}
+      <EmergencyPopup
+        isOpen={showEmergencyPopup}
+        onClose={handleCloseEmergencyPopup}
+        emergencyData={emergencyData}
+        severity={aiCrisisSeverity}
+        onAddContacts={handleAddContacts}
+      />
+      
       <Toaster />
     </div>
   );
