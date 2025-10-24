@@ -434,6 +434,7 @@ const MoodLogPage = () => {
         emergencyData={emergencyData}
         severity={crisisSeverity}
         onAddContacts={handleAddContacts}
+        userId={user?.user_id}
       />
       
       <Toaster />
