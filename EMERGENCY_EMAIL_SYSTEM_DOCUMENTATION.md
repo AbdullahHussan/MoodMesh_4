@@ -2,7 +2,7 @@
 
 ## ⚠️ CRITICAL INFORMATION
 
-This system sends alerts to **REAL AUTHORITIES** (currently configured as: `abdullahdeveloper4@gmail.com`, will be changed to actual emergency services).
+This system sends alerts to **REAL AUTHORITIES** (currently configured as: `ah3146952@gmail.com`, will be changed to actual emergency services).
 
 **False positives are NOT acceptable** - they waste emergency resources and can have serious legal/ethical consequences.
 
