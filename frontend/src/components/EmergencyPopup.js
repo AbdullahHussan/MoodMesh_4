@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   AlertTriangle, Phone, MessageSquare, Heart, Shield, 
-  X, UserPlus, ExternalLink, Clock, MapPin, PhoneCall 
+  X, UserPlus, ExternalLink, Clock, MapPin 
 } from "lucide-react";
 
 const EmergencyPopup = ({ 
