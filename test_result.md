@@ -575,10 +575,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Exercise Trainer API - Exercise Library"
-    - "Exercise Trainer API - Session Management"
-    - "Exercise Trainer API - Progress & History"
-    - "Exercise Trainer - MediaPipe Pose Detection"
+    - "AI Learning System - User Learning Profile"
+    - "AI-Powered Crisis Text Analysis"
+    - "Emergency Response System"
+    - "Emergency Popup Component"
+    - "Crisis Detection React Hook"
+    - "AI Therapist Crisis Integration"
+    - "Mood Log Crisis Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
