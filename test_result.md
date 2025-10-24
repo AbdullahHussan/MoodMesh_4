@@ -104,7 +104,7 @@
 
 user_problem_statement: "Build Mood Analytics & Insights Dashboard feature that shows mood patterns, trends, time analysis, common emotions, and AI-generated insights. Add Guided Meditation & Breathing Exercises feature with audio-guided sessions, breathing exercises, meditation sessions, progress tracking, and smart recommendations based on mood. Add Resource Library & Psychoeducation feature with educational articles on mental health conditions (anxiety, depression, PTSD), CBT/DBT coping techniques, video resources, reading recommendations, and myth-busting content."
 
-latest_task: "Build real-time Exercise Helper & Yoga Trainer with AI-powered pose detection using MediaPipe, rule-based form analysis with angle calculations, rep counting for 12 exercises (strength, cardio, yoga), two modes (manual tracking vs AI coach), session tracking with wellness stars rewards, and progress statistics."
+latest_task: "Make AI learn from user interactions. When user gets extreme in conversation (using certain words or emotionally broken), trigger emergency popup: (1) If user has close contacts - show popup to contact them, (2) If no close contacts - show emergency contact numbers based on conversations. Detect both sudden spikes AND gradual escalation across all text inputs."
 
 backend:
   - task: "Analytics API endpoint"
