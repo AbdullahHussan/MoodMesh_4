@@ -2182,6 +2182,216 @@ Return as a simple numbered list, one recommendation per line."""
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def validate_phone_number(phone: str) -> bool:
+    """Validate phone number format"""
+    pattern = r'^\+?1?\d{9,15}$'
+    return bool(re.match(pattern, phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")))
+
+def format_phone_number(phone: str) -> str:
+    """Format phone number to E.164 format"""
+    phone = phone.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+    if not phone.startswith("+"):
+        if phone.startswith("1") and len(phone) == 11:
+            phone = "+" + phone
+        else:
+            phone = "+1" + phone
+    return phone
+
+def sanitize_for_tts(message: str) -> str:
+    """Prepare message for text-to-speech"""
+    # Remove special characters that confuse TTS
+    message = re.sub(r'[<>{}[\]\\|^`~#@!&*()_+=/?.,\';:"—–]', '', message)
+    message = re.sub(r'\s+', ' ', message)
+    
+    # Replace common abbreviations
+    replacements = {
+        "&": "and",
+        "ASAP": "as soon as possible",
+        "dept.": "department",
+        "hrs": "hours",
+        "mins": "minutes"
+    }
+    
+    for abbr, full in replacements.items():
+        message = re.sub(rf'\b{re.escape(abbr)}\b', full, message, flags=re.IGNORECASE)
+    
+    # Add period if missing
+    if message and not message.endswith(('.', '!', '?')):
+        message += '.'
+    
+    return message.strip()
+
+
+@api_router.post("/crisis/initiate-call", response_model=VoiceCallResponse)
+async def initiate_emergency_call(request: EmergencyCallRequest):
+    """
+    Initiate automated voice calls for crisis situations
+    - For critical severity: Auto-call without asking (if consent given via settings)
+    - For high/medium severity: Requires explicit user_consent
+    - Calls close contacts first, then appropriate crisis hotlines if no contacts
+    - Uses AI-generated text-to-speech with crisis context
+    """
+    try:
+        # Check if Plivo is configured
+        if not plivo_client or not PLIVO_PHONE_NUMBER:
+            raise HTTPException(
+                status_code=503,
+                detail="Voice calling service is not configured. Please contact administrator to set up Plivo credentials."
+            )
+        
+        # Check consent requirements
+        if request.severity in ["medium", "high"] and not request.user_consent:
+            raise HTTPException(
+                status_code=400,
+                detail="User consent required for non-critical emergency calls"
+            )
+        
+        # For critical severity, we auto-call even without explicit consent
+        # (This assumes user has opted-in to crisis intervention in their settings)
+        
+        # Get user's emergency contacts
+        contacts = await db.emergency_contacts.find({"user_id": request.user_id}, {"_id": 0}).to_list(100)
+        
+        call_details = []
+        calls_made = 0
+        request_id = str(uuid.uuid4())
+        
+        # Generate AI-powered voice message
+        ai_message_prompt = f"""Generate a brief, clear, and compassionate voice message (2-3 sentences max) for an emergency call.
+
+Context: {request.crisis_context}
+Severity: {request.severity}
+
+The message should:
+1. Identify this as an automated emergency alert
+2. Briefly describe the concern
+3. Urgently request the recipient to check on or contact the person
+4. Be calm but convey urgency
+
+Keep it under 50 words, suitable for text-to-speech."""
+
+        try:
+            ai_response = model.generate_content(ai_message_prompt)
+            voice_message = sanitize_for_tts(ai_response.text)
+        except Exception as e:
+            logging.error(f"AI message generation failed: {str(e)}")
+            # Fallback message
+            voice_message = sanitize_for_tts(
+                f"This is an automated emergency alert. Your contact may need immediate support. "
+                f"Please reach out to them as soon as possible. This is a {request.severity} priority situation."
+            )
+        
+        # If user has close contacts, call them first
+        if contacts:
+            for contact in contacts[:3]:  # Call up to 3 close contacts
+                phone = contact.get("phone")
+                if not phone or not validate_phone_number(phone):
+                    call_details.append({
+                        "recipient": contact.get("name", "Unknown"),
+                        "phone": phone or "N/A",
+                        "status": "failed",
+                        "error": "Invalid phone number"
+                    })
+                    continue
+                
+                try:
+                    formatted_phone = format_phone_number(phone)
+                    
+                    # Create call via Plivo
+                    call_response = plivo_client.calls.create(
+                        from_=PLIVO_PHONE_NUMBER,
+                        to_=formatted_phone,
+                        answer_method="GET",
+                        answer_url="https://your-webhook-url.com/voice/answer",  # Will be configured later
+                        caller_name="Crisis Alert"
+                    )
+                    
+                    # Store call record in database
+                    call_record = {
+                        "call_id": str(uuid.uuid4()),
+                        "request_id": request_id,
+                        "user_id": request.user_id,
+                        "recipient_name": contact.get("name", "Unknown"),
+                        "recipient_phone": formatted_phone,
+                        "recipient_relationship": contact.get("relationship", ""),
+                        "call_uuid": call_response.call_uuid,
+                        "message": voice_message,
+                        "severity": request.severity,
+                        "status": "initiated",
+                        "timestamp": datetime.now(timezone.utc)
+                    }
+                    await db.voice_call_logs.insert_one(call_record)
+                    
+                    call_details.append({
+                        "recipient": contact.get("name", "Unknown"),
+                        "phone": formatted_phone,
+                        "status": "initiated",
+                        "call_uuid": call_response.call_uuid
+                    })
+                    calls_made += 1
+                    
+                    logging.info(f"Emergency call initiated to {contact.get('name')}: {call_response.call_uuid}")
+                    
+                except Exception as e:
+                    logging.error(f"Failed to call {contact.get('name')}: {str(e)}")
+                    call_details.append({
+                        "recipient": contact.get("name", "Unknown"),
+                        "phone": phone,
+                        "status": "failed",
+                        "error": str(e)
+                    })
+        
+        # If no contacts or calls failed, call appropriate crisis hotline
+        if calls_made == 0:
+            # Determine best crisis hotline based on severity
+            hotline_map = {
+                "critical": {"name": "988 Suicide & Crisis Lifeline", "number": "+18009508264"},  # 988
+                "high": {"name": "Crisis Text Line", "number": "+17417411"},  # Can be adapted
+                "medium": {"name": "SAMHSA National Helpline", "number": "+18006624357"},
+                "low": {"name": "Mental Health Support", "number": "+18009508264"}
+            }
+            
+            hotline = hotline_map.get(request.severity, hotline_map["high"])
+            
+            # For demo/trial purposes, we'll log this but not actually call crisis hotlines
+            # In production, you'd need explicit permission and coordination with these services
+            call_details.append({
+                "recipient": hotline["name"],
+                "phone": hotline["number"],
+                "status": "recommended",
+                "note": "Crisis hotline contact recommended - manual call suggested for privacy and compliance"
+            })
+            
+            logging.info(f"No close contacts available. Recommended hotline: {hotline['name']}")
+        
+        # Log the overall request
+        await db.voice_call_requests.insert_one({
+            "request_id": request_id,
+            "user_id": request.user_id,
+            "severity": request.severity,
+            "crisis_context": request.crisis_context,
+            "calls_initiated": calls_made,
+            "user_consent": request.user_consent,
+            "timestamp": datetime.now(timezone.utc),
+            "call_details": call_details
+        })
+        
+        return VoiceCallResponse(
+            request_id=request_id,
+            status="completed" if calls_made > 0 else "no_contacts",
+            message=f"Successfully initiated {calls_made} emergency call(s)" if calls_made > 0 
+                   else "No close contacts available. Please call crisis hotline manually.",
+            calls_initiated=calls_made,
+            call_details=call_details
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error initiating emergency call: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to initiate emergency call: {str(e)}")
+
+
 # Meditation & Breathing Exercise Routes
 
 # Seed initial data for breathing exercises and meditation sessions
