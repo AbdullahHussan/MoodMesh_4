@@ -13,7 +13,7 @@ import time
 from urllib.parse import urlparse, parse_qs
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://thoughtful-dispatch.preview.emergentagent.com/api"
+BACKEND_URL = "https://coach-eye-counter.preview.emergentagent.com/api"
 
 class MusicTherapyFocusedTest:
     def __init__(self):
