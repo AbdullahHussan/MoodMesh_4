@@ -2451,20 +2451,23 @@ Keep it concise and clear."""
         }
         await db.crisis_alert_logs.insert_one(alert_record)
         
-        # Log the overall request
+        # Log the overall request with decision transparency
         await db.voice_call_requests.insert_one({
             "request_id": request_id,
             "user_id": request.user_id,
             "severity": request.severity,
             "crisis_context": request.crisis_context,
             "calls_initiated": 1 if email_sent else 0,
+            "email_sent_to_authorities": email_sent,
+            "decision_reason": decision_reason,
             "user_consent": request.user_consent,
             "timestamp": datetime.now(timezone.utc),
             "call_details": [{
-                "recipient": "Emergency Alert System",
-                "email": EMERGENCY_ALERT_EMAIL,
-                "status": "sent" if email_sent else "logged",
-                "alert_id": alert_record["alert_id"]
+                "recipient": "Emergency Alert System" if email_sent else "Evaluated - No Alert Sent",
+                "email": EMERGENCY_ALERT_EMAIL if email_sent else None,
+                "status": "sent" if email_sent else "not_required",
+                "alert_id": alert_record["alert_id"],
+                "reason": decision_reason
             }]
         })
         
