@@ -24,6 +24,8 @@ import Meditation from "@/pages/Meditation";
 import Resources from "@/pages/Resources";
 import ExerciseTrainer from "@/pages/ExerciseTrainer";
 import CrisisButton from "@/components/CrisisButton";
+import EmergencyPopup from "@/components/EmergencyPopup";
+import useCrisisDetection from "@/hooks/useCrisisDetection";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
