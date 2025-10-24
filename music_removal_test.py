@@ -10,7 +10,7 @@ import uuid
 import time
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://coach-remover.preview.emergentagent.com/api"
+BACKEND_URL = "https://posescan-ai.preview.emergentagent.com/api"
 
 class MusicRemovalTest:
     def __init__(self):

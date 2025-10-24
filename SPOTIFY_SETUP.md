@@ -18,7 +18,7 @@ This error occurs when the redirect URI configured in your app doesn't match wha
 1. Scroll down to "Redirect URIs" section
 2. Add this exact URL:
    ```
-   https://coach-remover.preview.emergentagent.com/music
+   https://posescan-ai.preview.emergentagent.com/music
    ```
 3. Click "Add" button
 4. Scroll to the bottom and click "Save" button
@@ -38,10 +38,10 @@ This error occurs when the redirect URI configured in your app doesn't match wha
 4. **Try incognito mode** - To ensure no cached data interferes
 
 ### Common Mistakes:
-- ❌ Adding trailing slash: `https://coach-remover.preview.emergentagent.com/music/`
+- ❌ Adding trailing slash: `https://posescan-ai.preview.emergentagent.com/music/`
 - ❌ Using http instead of https: `http://relax-player-patch.preview.emergentagent.com/music`
-- ❌ Wrong path: `https://coach-remover.preview.emergentagent.com/spotify`
-- ✅ Correct: `https://coach-remover.preview.emergentagent.com/music`
+- ❌ Wrong path: `https://posescan-ai.preview.emergentagent.com/spotify`
+- ✅ Correct: `https://posescan-ai.preview.emergentagent.com/music`
 
 ## What's Been Fixed
 
