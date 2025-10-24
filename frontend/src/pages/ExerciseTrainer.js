@@ -115,46 +115,74 @@ const ExerciseTrainer = () => {
 
   const startCamera = async () => {
     try {
-      console.log("Requesting camera access...");
+      console.log("🎥 Step 1: Requesting camera access...");
+      toast.info("Requesting camera access...");
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 } 
+        video: { 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 },
+          facingMode: 'user' 
+        } 
       });
       
-      console.log("Camera access granted, stream obtained");
+      console.log("✅ Step 2: Camera access granted, stream obtained", stream);
+      toast.success("Camera access granted!");
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        
-        const activateCamera = () => {
-          console.log("Activating camera and pose detection");
-          videoRef.current.play().then(() => {
-            console.log("Video playing, setting cameraActive to true");
+      if (!videoRef.current) {
+        console.error("❌ Video ref not available");
+        toast.error("Video element not ready");
+        return;
+      }
+      
+      console.log("🎥 Step 3: Setting video srcObject");
+      videoRef.current.srcObject = stream;
+      
+      const activateCamera = async () => {
+        console.log("🎥 Step 4: Playing video and activating camera");
+        try {
+          await videoRef.current.play();
+          console.log("✅ Step 5: Video playing successfully");
+          
+          // Wait a bit to ensure video is really playing
+          setTimeout(() => {
+            console.log("✅ Step 6: Setting cameraActive to true");
             setCameraActive(true);
+            toast.success("Camera feed active!");
+            
+            // Initialize pose detection after camera is confirmed active
+            console.log("🤖 Step 7: Initializing pose detection");
             initPoseDetection();
-            toast.success("Camera activated!");
-          }).catch(err => {
-            console.error("Error playing video:", err);
-          });
+          }, 300);
+          
+        } catch (err) {
+          console.error("❌ Error playing video:", err);
+          toast.error("Failed to play video: " + err.message);
+        }
+      };
+      
+      // Check if metadata is already loaded, otherwise wait for it
+      if (videoRef.current.readyState >= 2) {
+        console.log("✅ Video metadata already loaded, readyState:", videoRef.current.readyState);
+        activateCamera();
+      } else {
+        console.log("⏳ Waiting for video metadata to load... current readyState:", videoRef.current.readyState);
+        videoRef.current.onloadedmetadata = () => {
+          console.log("✅ Video metadata loaded via event, readyState:", videoRef.current.readyState);
+          activateCamera();
         };
         
-        // Check if metadata is already loaded, otherwise wait for it
-        if (videoRef.current.readyState >= 2) {
-          console.log("Video metadata already loaded");
-          activateCamera();
-        } else {
-          console.log("Waiting for video metadata to load...");
-          videoRef.current.onloadedmetadata = () => {
-            console.log("Video metadata loaded via event");
+        // Timeout fallback
+        setTimeout(() => {
+          if (!cameraActive && videoRef.current && videoRef.current.readyState >= 2) {
+            console.log("⚠️ Timeout: forcing camera activation");
             activateCamera();
-          };
-        }
-      } else {
-        console.error("Video ref not available");
-        toast.error("Video element not ready");
+          }
+        }, 2000);
       }
     } catch (error) {
-      console.error("Camera access denied or error:", error);
-      toast.error("Camera access required for AI Coach. Please allow camera permissions.");
+      console.error("❌ Camera access denied or error:", error);
+      toast.error("Camera access required for AI Coach. Please allow camera permissions in your browser.");
       setUseAICoach(false);
       setCameraActive(false);
     }
