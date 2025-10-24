@@ -290,6 +290,20 @@ class EmergencyResponse(BaseModel):
     urgent_message: str
     follow_up_resources: List[str] = []
 
+# Voice Calling Models
+class EmergencyCallRequest(BaseModel):
+    user_id: str
+    crisis_context: str
+    severity: str  # "low", "medium", "high", "critical"
+    user_consent: bool = False  # Whether user gave explicit consent to call
+
+class VoiceCallResponse(BaseModel):
+    request_id: str
+    status: str
+    message: str
+    calls_initiated: int
+    call_details: List[dict] = []  # {recipient, phone, status}
+
 # Meditation & Breathing Exercise Models
 class BreathingExercise(BaseModel):
     model_config = ConfigDict(extra="ignore")
