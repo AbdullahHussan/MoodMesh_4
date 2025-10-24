@@ -408,7 +408,7 @@ const MoodLogPage = () => {
   );
 };
 
-// AI Therapist Chat - Enhanced Version
+// AI Therapist Chat - Enhanced Version with AI Learning & Crisis Detection
 const AITherapist = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -424,6 +424,15 @@ const AITherapist = () => {
   const [showInsights, setShowInsights] = useState(false);
   const [insights, setInsights] = useState(null);
   const [showMoodCheckIn, setShowMoodCheckIn] = useState(false);
+
+  // Initialize crisis detection hook
+  const {
+    showEmergencyPopup,
+    emergencyData,
+    crisisSeverity: aiCrisisSeverity,
+    analyzeText,
+    closeEmergencyPopup
+  } = useCrisisDetection(user?.user_id);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("moodmesh_user");
@@ -470,14 +479,30 @@ const AITherapist = () => {
     if (!inputMessage.trim()) return;
 
     const userMsg = { role: 'user', content: inputMessage, techniques: [], moodContext: null };
+    const messageToAnalyze = inputMessage;
     setMessages(prev => [...prev, userMsg]);
     setInputMessage("");
     setIsLoading(true);
 
     try {
+      // First, analyze message for crisis with AI learning
+      const conversationHistory = messages.slice(-10).map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+      
+      // Run crisis analysis in background (don't await to not block chat)
+      analyzeText(
+        messageToAnalyze,
+        'chat',
+        { conversation_history: conversationHistory, session_id: sessionId },
+        true
+      ).catch(err => console.error('Crisis analysis error:', err));
+
+      // Continue with normal therapist response
       const response = await axios.post(`${API}/therapist/chat`, {
         user_id: user.user_id,
-        message: inputMessage,
+        message: messageToAnalyze,
         session_id: sessionId
       });
 
@@ -504,7 +529,7 @@ const AITherapist = () => {
         setMoodContext(response.data.mood_context);
       }
       
-      // Check if crisis was detected
+      // Check if crisis was detected (legacy check)
       if (response.data.crisis_detected) {
         setCrisisSeverity(response.data.crisis_severity);
         setShowCrisisModal(true);
@@ -520,6 +545,15 @@ const AITherapist = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseEmergencyPopup = () => {
+    closeEmergencyPopup();
+  };
+
+  const handleAddContacts = () => {
+    closeEmergencyPopup();
+    navigate("/crisis-support");
   };
 
   const loadInsights = async () => {
