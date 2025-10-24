@@ -426,6 +426,16 @@ const MoodLogPage = () => {
           </Card>
         )}
       </div>
+      
+      {/* AI-Powered Emergency Popup */}
+      <EmergencyPopup
+        isOpen={showEmergencyPopup}
+        onClose={handleCloseEmergencyPopup}
+        emergencyData={emergencyData}
+        severity={crisisSeverity}
+        onAddContacts={handleAddContacts}
+      />
+      
       <Toaster />
     </div>
   );
