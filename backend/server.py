@@ -228,6 +228,68 @@ class CrisisDetectionResponse(BaseModel):
     detected_keywords: List[str]
     follow_up_question: Optional[str] = None
 
+# AI Learning & Enhanced Crisis Detection Models
+class EmotionalBaseline(BaseModel):
+    average_mood_score: float = 5.0  # 1-10 scale
+    typical_keywords: List[str] = []
+    baseline_sentiment: str = "neutral"  # positive, neutral, negative
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class EscalationRecord(BaseModel):
+    timestamp: datetime
+    severity: str
+    escalation_score: float  # 0-100
+    text_sample: str
+    source: str  # "chat", "mood_log", "journal", etc.
+
+class UserLearningProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    emotional_baseline: EmotionalBaseline = Field(default_factory=EmotionalBaseline)
+    personal_crisis_triggers: List[str] = []  # Learned keywords specific to this user
+    escalation_history: List[EscalationRecord] = []  # Last 50 records
+    effective_coping_strategies: List[str] = []  # What works for this user
+    total_interactions: int = 0
+    high_risk_count: int = 0  # Number of high severity incidents
+    last_high_risk: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TextAnalysisRequest(BaseModel):
+    user_id: str
+    text: str
+    source: str  # "chat", "mood_log", "journal", etc.
+    context: Optional[dict] = None  # Additional context like conversation history
+
+class EnhancedCrisisAnalysis(BaseModel):
+    is_crisis: bool
+    severity: str  # "low", "medium", "high", "critical"
+    escalation_score: float  # 0-100 scale
+    escalation_type: str  # "none", "sudden_spike", "gradual", "both"
+    detected_keywords: List[str]
+    personal_triggers_detected: List[str]
+    comparison_to_baseline: str  # Description of how this compares to user's normal
+    should_trigger_popup: bool
+    popup_urgency: str  # "low", "medium", "high", "critical"
+    ai_analysis: str  # Detailed AI analysis
+    recommended_actions: List[str]
+    follow_up_question: Optional[str] = None
+
+class EmergencyResponseRequest(BaseModel):
+    user_id: str
+    crisis_context: str
+    severity: str
+    user_country: Optional[str] = "United States"
+
+class EmergencyResponse(BaseModel):
+    has_close_contacts: bool
+    close_contacts: List[dict] = []  # {name, phone, relationship, email}
+    crisis_hotlines: List[dict] = []  # {name, number, available, country}
+    ai_recommended_resources: List[str] = []
+    urgent_message: str
+    follow_up_resources: List[str] = []
+
 # Meditation & Breathing Exercise Models
 class BreathingExercise(BaseModel):
     model_config = ConfigDict(extra="ignore")
