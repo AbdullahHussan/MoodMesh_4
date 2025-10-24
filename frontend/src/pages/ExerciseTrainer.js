@@ -57,9 +57,18 @@ const ExerciseTrainer = () => {
   useEffect(() => {
     // Cleanup on unmount
     return () => {
+      console.log("Component unmounting - cleaning up...");
       stopCamera();
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      isDetectionActiveRef.current = false;
+      if (poseDetectionRef.current) {
+        poseDetectionRef.current.close();
+        poseDetectionRef.current = null;
       }
     };
   }, []);
