@@ -313,6 +313,12 @@ const ExerciseTrainer = () => {
       return;
     }
     
+    // Validate results object
+    if (!results) {
+      console.warn("Pose results is null or undefined");
+      return;
+    }
+    
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
@@ -345,7 +351,7 @@ const ExerciseTrainer = () => {
     }
     
     // Draw pose landmarks if detected
-    if (results.poseLandmarks && results.poseLandmarks.length > 0) {
+    if (results.poseLandmarks && Array.isArray(results.poseLandmarks) && results.poseLandmarks.length > 0) {
       // Draw landmarks OVER the video
       drawLandmarks(ctx, results.poseLandmarks);
       
