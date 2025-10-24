@@ -262,15 +262,14 @@ const ExerciseTrainer = () => {
       
       const pose = new window.Pose({
         locateFile: (file) => {
-          // Use multiple CDN fallbacks for better reliability
           console.log('Loading MediaPipe file:', file);
-          // Try jsdelivr CDN with explicit version
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
+          // Use unpkg as more reliable CDN for MediaPipe
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`;
         }
       });
       
       pose.setOptions({
-        modelComplexity: 1,
+        modelComplexity: 0, // Changed to 0 (lite model) for better performance and less memory
         smoothLandmarks: true,
         enableSegmentation: false,
         smoothSegmentation: false,
@@ -278,9 +277,6 @@ const ExerciseTrainer = () => {
         minTrackingConfidence: 0.5
       });
       
-      pose.onResults(onPoseResults);
-      
-      // Add error listener for model loading issues
       pose.onResults = (results) => {
         try {
           onPoseResults(results);
@@ -290,9 +286,10 @@ const ExerciseTrainer = () => {
       };
       
       poseDetectionRef.current = pose;
+      isDetectionActiveRef.current = true;
       
       console.log("MediaPipe Pose initialized, starting detection loop...");
-      toast.success("AI Coach initialized successfully!");
+      toast.success("AI Coach initialized!");
       
       // Start detection loop
       detectPose();
