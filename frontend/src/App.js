@@ -1021,6 +1021,7 @@ const AITherapist = () => {
         emergencyData={emergencyData}
         severity={aiCrisisSeverity}
         onAddContacts={handleAddContacts}
+        userId={user?.user_id}
       />
       
       <Toaster />
