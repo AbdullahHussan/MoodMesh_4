@@ -288,6 +288,15 @@ const MoodLogPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [recentLogs, setRecentLogs] = useState([]);
 
+  // Initialize crisis detection hook
+  const {
+    showEmergencyPopup,
+    emergencyData,
+    crisisSeverity,
+    analyzeText,
+    closeEmergencyPopup
+  } = useCrisisDetection(user?.user_id);
+
   useEffect(() => {
     const storedUser = localStorage.getItem("moodmesh_user");
     const storedToken = localStorage.getItem("moodmesh_token");
@@ -317,6 +326,11 @@ const MoodLogPage = () => {
 
     setIsLoading(true);
     try {
+      // Analyze mood text for crisis in background
+      analyzeText(moodText, 'mood_log', null, true).catch(err => 
+        console.error('Crisis analysis error:', err)
+      );
+
       const response = await axios.post(`${API}/mood/log`, {
         user_id: user.user_id,
         mood_text: moodText
@@ -330,6 +344,15 @@ const MoodLogPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseEmergencyPopup = () => {
+    closeEmergencyPopup();
+  };
+
+  const handleAddContacts = () => {
+    closeEmergencyPopup();
+    navigate("/crisis-support");
   };
 
   if (!user) return null;
