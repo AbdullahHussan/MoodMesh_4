@@ -845,21 +845,29 @@ const ExerciseTrainer = () => {
                 </CardContent>
               </Card>
 
-              {/* AI Coach Camera Feed */}
-              {useAICoach && cameraActive && (
-                <Card className="border-green-500 border-2">
+              {/* AI Coach Camera Feed - Always show when AI Coach enabled */}
+              {useAICoach && (
+                <Card className={cameraActive ? "border-green-500 border-2" : "border-yellow-500 border-2"}>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Camera className="w-5 h-5 text-green-600" />
+                      <Camera className={`w-5 h-5 ${cameraActive ? 'text-green-600' : 'text-yellow-600'}`} />
                       AI Coach - Live Camera Feed
-                      <Badge className="ml-auto bg-green-500">
-                        <Activity className="w-3 h-3 mr-1" />
-                        Active
-                      </Badge>
+                      {cameraActive ? (
+                        <Badge className="ml-auto bg-green-500">
+                          <Activity className="w-3 h-3 mr-1" />
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge className="ml-auto bg-yellow-500">
+                          <Activity className="w-3 h-3 mr-1 animate-pulse" />
+                          Starting...
+                        </Badge>
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
                     <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                      {/* Hidden video element that feeds the canvas */}
                       <video 
                         ref={videoRef} 
                         className="absolute top-0 left-0 w-full h-full object-cover"
@@ -868,39 +876,62 @@ const ExerciseTrainer = () => {
                         height="480"
                         autoPlay
                         playsInline
+                        muted
                       />
+                      
+                      {/* Canvas with pose detection overlay */}
                       <canvas 
                         ref={canvasRef}
                         width="640"
                         height="480"
-                        className="w-full h-full rounded-lg border-4 border-green-500 block"
-                        style={{ display: 'block', objectFit: 'contain', backgroundColor: '#000' }}
+                        className="w-full h-full rounded-lg block"
+                        style={{ 
+                          display: 'block', 
+                          objectFit: 'contain', 
+                          backgroundColor: '#000',
+                          border: cameraActive ? '4px solid #10b981' : '4px solid #f59e0b'
+                        }}
                       />
-                      {!poseDetectionRef.current && (
+                      
+                      {/* Loading overlay when camera is starting */}
+                      {!cameraActive && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 text-white">
+                          <div className="text-center">
+                            <Camera className="w-16 h-16 mx-auto mb-4 animate-pulse text-yellow-400" />
+                            <p className="text-xl font-semibold mb-2">Activating Camera...</p>
+                            <p className="text-sm text-gray-300">Please allow camera permissions if prompted</p>
+                            <div className="mt-4 flex items-center justify-center gap-2">
+                              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Pose detection initializing overlay */}
+                      {cameraActive && !poseDetectionRef.current && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
                           <div className="text-center">
-                            <Camera className="w-12 h-12 mx-auto mb-2 animate-pulse" />
-                            <p>Initializing AI Coach...</p>
+                            <Activity className="w-12 h-12 mx-auto mb-2 animate-spin text-green-400" />
+                            <p>Initializing Pose Detection...</p>
                           </div>
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Show message when AI Coach is enabled but camera not active yet */}
-              {useAICoach && !cameraActive && (
-                <Card className="border-yellow-500 border-2">
-                  <CardContent className="p-6 text-center">
-                    <Camera className="w-12 h-12 mx-auto mb-3 text-yellow-600 animate-pulse" />
-                    <p className="text-gray-700 font-semibold mb-3">Activating AI Coach Camera...</p>
-                    <p className="text-sm text-gray-600">Please allow camera permissions if prompted</p>
-                    {isExercising && (
-                      <p className="text-xs text-red-600 mt-2">
-                        If camera doesn't activate, check browser permissions or refresh the page
-                      </p>
-                    )}
+                    
+                    {/* Camera status indicator */}
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${cameraActive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                        <span className="text-gray-700">
+                          {cameraActive ? '🎥 Camera Active - Pose Detection Running' : '⏳ Camera Starting...'}
+                        </span>
+                      </div>
+                      {cameraActive && poseDetectionRef.current && (
+                        <span className="text-green-600 font-semibold">✓ AI Ready</span>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}
