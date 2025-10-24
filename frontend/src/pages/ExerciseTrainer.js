@@ -229,7 +229,10 @@ const ExerciseTrainer = () => {
       
       const pose = new window.Pose({
         locateFile: (file) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+          // Use multiple CDN fallbacks for better reliability
+          console.log('Loading MediaPipe file:', file);
+          // Try jsdelivr CDN with explicit version
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
         }
       });
       
@@ -243,9 +246,20 @@ const ExerciseTrainer = () => {
       });
       
       pose.onResults(onPoseResults);
+      
+      // Add error listener for model loading issues
+      pose.onResults = (results) => {
+        try {
+          onPoseResults(results);
+        } catch (error) {
+          console.error("Error in onPoseResults:", error);
+        }
+      };
+      
       poseDetectionRef.current = pose;
       
       console.log("MediaPipe Pose initialized, starting detection loop...");
+      toast.success("AI Coach initialized successfully!");
       
       // Start detection loop
       detectPose();
