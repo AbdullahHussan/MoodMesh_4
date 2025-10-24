@@ -276,6 +276,21 @@ const EmergencyPopup = ({
                             {callStatus.success ? '✅ Call Initiated!' : '❌ Call Failed'}
                           </p>
                           <p className="text-sm text-gray-700 mb-2">{callStatus.message}</p>
+                          
+                          {/* Show setup instructions if service not configured */}
+                          {!callStatus.success && callStatus.message.includes("setup") && (
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs font-semibold text-blue-900 mb-2">🚀 Quick Setup (5 minutes):</p>
+                              <ol className="text-xs text-blue-800 space-y-1 ml-4 list-decimal">
+                                <li>Get FREE Plivo account: <a href="https://www.plivo.com/request-trial/" target="_blank" rel="noopener noreferrer" className="underline font-semibold">plivo.com/request-trial</a> ($15 credit = 750 mins)</li>
+                                <li>Get your Auth ID, Token & Phone Number from Plivo Console</li>
+                                <li>Add credentials to <code className="bg-blue-100 px-1 rounded">/app/backend/.env</code></li>
+                                <li>Restart backend: <code className="bg-blue-100 px-1 rounded">sudo supervisorctl restart backend</code></li>
+                              </ol>
+                              <p className="text-xs text-blue-700 mt-2">📖 See <strong>VOICE_CALLING_SETUP.md</strong> for detailed guide</p>
+                            </div>
+                          )}
+                          
                           {callStatus.details && callStatus.details.length > 0 && (
                             <div className="mt-3 space-y-2">
                               <p className="text-xs font-semibold text-gray-600">Call Details:</p>
