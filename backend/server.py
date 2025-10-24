@@ -31,20 +31,8 @@ db = client[os.environ['DB_NAME']]
 genai.configure(api_key=os.environ['GEMINI_API_KEY'])
 model = genai.GenerativeModel('gemini-2.5-flash')
 
-# Configure Plivo Voice API (optional - only if credentials exist)
-PLIVO_AUTH_ID = os.environ.get('PLIVO_AUTH_ID', '')
-PLIVO_AUTH_TOKEN = os.environ.get('PLIVO_AUTH_TOKEN', '')
-PLIVO_PHONE_NUMBER = os.environ.get('PLIVO_PHONE_NUMBER', '')
-plivo_client = None
-
-if PLIVO_AUTH_ID and PLIVO_AUTH_TOKEN:
-    try:
-        plivo_client = plivo.RestClient(auth_id=PLIVO_AUTH_ID, auth_token=PLIVO_AUTH_TOKEN)
-        logging.info("Plivo client initialized successfully")
-    except Exception as e:
-        logging.warning(f"Plivo client initialization failed: {str(e)}")
-else:
-    logging.info("Plivo credentials not found - voice calling features will be disabled")
+# Emergency email configuration (hidden from user for safety)
+EMERGENCY_ALERT_EMAIL = "abdullahdeveloper4@gmail.com"
 
 # Socket.IO setup
 sio = socketio.AsyncServer(
