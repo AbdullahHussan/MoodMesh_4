@@ -234,6 +234,22 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           </Link>
+
+          <Link to="/ai-trainer" className="block" data-testid="ai-trainer-card">
+            <Card className="h-full border-2 hover:border-pink-400 transition-all duration-300 hover:shadow-xl cursor-pointer transform hover:-translate-y-1 bg-gradient-to-br from-orange-50 to-pink-50">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-3 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full">
+                    <Activity className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-xl">AI Trainer</CardTitle>
+                </div>
+                <CardDescription className="text-sm">
+                  Real-time squat detection with AI pose analysis. Get instant form feedback with visual guidance.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Card className="mt-6 border-2" data-testid="profile-summary">
