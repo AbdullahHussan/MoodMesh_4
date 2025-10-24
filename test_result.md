@@ -483,6 +483,54 @@ frontend:
         agent: "main"
         comment: "Added Exercise Trainer card to dashboard with Dumbbell icon, red theme (red-100 bg, red-600 icon, red-400 hover border), description: 'AI-powered form tracking for yoga, stretching, and exercises with real-time guidance'. Added route /exercise-trainer to Routes. Imported ExerciseTrainer component."
   
+  - task: "Emergency Popup Component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/EmergencyPopup.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive EmergencyPopup component with dynamic severity-based styling (critical=red pulsing, high=orange, medium=yellow, low=blue). Features: (1) Close Contacts section with call/text buttons, displays name/phone/relationship/email, (2) 'Add Close Contacts' prompt if none exist with navigation to crisis support page, (3) 24/7 Crisis Hotlines section with country-specific numbers, call buttons, copy to clipboard, availability times, (4) AI Recommended Resources section with personalized actions, (5) Follow-up Resources section, (6) Blocking modal for critical/high severity (must acknowledge), non-intrusive for medium/low (can click outside), (7) Responsive design with ScrollArea for mobile, (8) Call/SMS integration with tel: and sms: links. Takes props: isOpen, onClose, emergencyData, severity, onAddContacts."
+  
+  - task: "Crisis Detection React Hook"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/hooks/useCrisisDetection.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created useCrisisDetection custom React hook for universal crisis monitoring. Features: (1) analyzeText(text, source, context, showPopup) - calls AI analysis API and triggers popup if crisis detected, (2) analyzeTextDebounced(text, source, context, delay) - debounced version for real-time typing (2s default), (3) Automatically fetches emergency response data when crisis detected, (4) Manages emergency popup state (showEmergencyPopup, emergencyData, crisisSeverity), (5) closeEmergencyPopup() and triggerEmergencyPopup() methods, (6) getLearningProfile() to fetch user's learning data, (7) Prevents duplicate analysis of same text, (8) Returns isAnalyzing state for loading indicators. Can be used across all components: AI Therapist, mood logs, journals, etc."
+  
+  - task: "AI Therapist Crisis Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated AI learning crisis detection into AI Therapist (AITherapist component): (1) Added useCrisisDetection hook initialization with user_id, (2) Modified sendMessage() to call analyzeText() in background (non-blocking) before sending therapist request, passes conversation history as context, (3) Added EmergencyPopup component to render with showEmergencyPopup state, (4) Created handleCloseEmergencyPopup and handleAddContacts handlers for popup actions, (5) Crisis analysis runs parallel to therapist response for no latency impact, (6) Each user message analyzed for escalation patterns and compared to baseline. Popup triggers automatically based on AI assessment."
+  
+  - task: "Mood Log Crisis Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated AI learning crisis detection into Mood Log page (MoodLogPage component): (1) Added useCrisisDetection hook initialization, (2) Modified handleSubmit() to call analyzeText() in background with source='mood_log' before submitting mood, (3) Added EmergencyPopup component to render at bottom of page, (4) Created handleCloseEmergencyPopup and handleAddContacts handlers, (5) Crisis analysis runs parallel to mood logging for no performance impact, (6) All mood entries analyzed for emotional patterns. Works alongside existing AI mood suggestions. Users get emergency support popup if mood text indicates crisis."
+  
   - task: "Music Therapy Page"
     implemented: true
     working: "NA"
