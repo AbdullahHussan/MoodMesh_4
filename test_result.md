@@ -607,6 +607,31 @@ frontend:
         agent: "main"
         comment: "MAJOR UI OVERHAUL: (1) Enhanced chat interface with 2-column layout (main chat + sidebar on desktop), (2) Session management - start new session button, session tracking with message count, (3) Mood context display - shows blue banner when mood patterns are analyzed, (4) Therapeutic technique cards - displays CBT/DBT/mindfulness techniques inline after therapist messages with step-by-step instructions, color-coded badges, (5) Insights modal - 'Insights' button opens comprehensive AI analysis with stats grid (sessions, conversations, mood logs, check-ins) and full AI-generated insights report, (6) Mood check-in modal - 'Check-in' button opens quick mood rating (1-10 slider), emotion selection (12 emotions), and optional note, (7) Sidebar info panel - shows suggested techniques, emergency resources (988 hotline, text 741741), session info, (8) Enhanced welcome message with feature badges, (9) Better loading state with descriptive text, (10) Updated copy to reflect 'AI Mental Health Companion' with evidence-based therapy. Uses sessionId, moodContext, suggestedTechniques state."
 
+  - task: "AI Trainer - TensorFlow Pose Detection"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AITrainer.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "COMPLETE REPLACEMENT OF EXERCISE TRAINER: Created new AI Trainer feature using TensorFlow.js PoseNet model (not MediaPipe). Features: (1) Real-time camera feed with pose detection overlay, (2) PoseNet model (MobileNetV1, 640x480 resolution) for body tracking, (3) Visual skeleton rigify with green lines for correct form (80-90% tolerance), red lines for poor form, (4) Automatic squat counting - detects squat phase transitions (standing → squatting → standing), (5) Form quality scoring (100% for proper depth 70-100° knee angle, 85% for acceptable, 70% for poor), (6) Real-time canvas overlay showing: timer (top-left), rep counter (top-right), form feedback (bottom-center), body detected indicator (top-center), (7) Session controls: adjustable target reps (5-50), start/stop session, reset, (8) Session stats: progress bar, timer, rep count, form quality percentage, (9) Session completion celebration with trophy animation, (10) Instructions card with proper squat form tips, (11) Modern gradient UI (orange-to-pink theme) matching app design. Replaced all Exercise Trainer references. Uses calculateAngle() for joint angle detection, analyzeSquat() for rep counting logic, drawSkeleton() for visual feedback."
+
+  - task: "AI Trainer Navigation & Routes"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added AI Trainer to app navigation: (1) Created dashboard card with Activity icon, gradient orange-to-pink background, description: 'Real-time squat detection with AI pose analysis. Get instant form feedback with visual guidance.', (2) Added /ai-trainer route to Routes, (3) Imported AITrainer component, (4) Added Activity icon to lucide-react imports. Installed TensorFlow.js dependencies: @tensorflow/tfjs@4.22.0 and @tensorflow-models/posenet@2.2.2 via yarn."
+
+
 metadata:
   created_by: "main_agent"
   version: "1.1"
