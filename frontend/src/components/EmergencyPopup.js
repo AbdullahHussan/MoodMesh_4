@@ -90,9 +90,21 @@ const EmergencyPopup = ({
       }
     } catch (error) {
       console.error('Error initiating call:', error);
+      
+      // Provide more helpful error messages
+      let errorMessage = "Network error: Unable to reach calling service. ";
+      
+      if (error.message && error.message.includes("Failed to fetch")) {
+        errorMessage += "Please check your internet connection or contact support.";
+      } else if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage = "Failed to connect to calling service. Please try manual calling or check setup guide.";
+      }
+      
       setCallStatus({
         success: false,
-        message: "Failed to connect to calling service. Please try manual calling."
+        message: errorMessage
       });
     } finally {
       setCalling(false);
