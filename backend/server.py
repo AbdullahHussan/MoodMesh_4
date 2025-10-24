@@ -1778,6 +1778,378 @@ async def detect_crisis(message: str):
         logging.error(f"Error detecting crisis: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# AI Learning & Enhanced Crisis Detection Routes
+
+@api_router.get("/crisis/learning-profile/{user_id}", response_model=UserLearningProfile)
+async def get_learning_profile(user_id: str):
+    """Get or create user's learning profile"""
+    try:
+        profile = await db.user_learning_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        
+        if not profile:
+            # Create new learning profile
+            new_profile = UserLearningProfile(user_id=user_id)
+            doc = new_profile.model_dump()
+            doc['created_at'] = doc['created_at'].isoformat()
+            doc['updated_at'] = doc['updated_at'].isoformat()
+            doc['emotional_baseline']['last_updated'] = doc['emotional_baseline']['last_updated'].isoformat()
+            
+            await db.user_learning_profiles.insert_one(doc)
+            return new_profile
+        
+        # Parse datetime fields
+        if isinstance(profile['created_at'], str):
+            profile['created_at'] = datetime.fromisoformat(profile['created_at'])
+        if isinstance(profile['updated_at'], str):
+            profile['updated_at'] = datetime.fromisoformat(profile['updated_at'])
+        if isinstance(profile['emotional_baseline']['last_updated'], str):
+            profile['emotional_baseline']['last_updated'] = datetime.fromisoformat(profile['emotional_baseline']['last_updated'])
+        if profile.get('last_high_risk') and isinstance(profile['last_high_risk'], str):
+            profile['last_high_risk'] = datetime.fromisoformat(profile['last_high_risk'])
+        
+        for record in profile.get('escalation_history', []):
+            if isinstance(record['timestamp'], str):
+                record['timestamp'] = datetime.fromisoformat(record['timestamp'])
+        
+        return UserLearningProfile(**profile)
+    except Exception as e:
+        logging.error(f"Error getting learning profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/crisis/analyze-text", response_model=EnhancedCrisisAnalysis)
+async def analyze_text_for_crisis(request: TextAnalysisRequest):
+    """
+    AI-powered text analysis that learns from user patterns and detects escalation.
+    Works across all text inputs: mood logs, journals, chat messages, etc.
+    """
+    try:
+        # Get user's learning profile
+        learning_profile = await get_learning_profile(request.user_id)
+        
+        # Enhanced crisis keywords (baseline)
+        crisis_keywords = [
+            'suicide', 'suicidal', 'kill myself', 'end my life', 'want to die', 
+            'self-harm', 'hurt myself', 'cut myself', 'harm myself', 
+            'no reason to live', 'better off dead', "can't go on", 
+            'end it all', 'take my life', 'overdose', 'worthless', 'hopeless',
+            'nothing matters', 'give up', "can't take it anymore", 'not worth living',
+            'exhausted', 'broken', 'numb', 'empty inside', 'disappear', 'burden'
+        ]
+        
+        text_lower = request.text.lower()
+        detected_keywords = [kw for kw in crisis_keywords if kw in text_lower]
+        personal_triggers = [trigger for trigger in learning_profile.personal_crisis_triggers if trigger.lower() in text_lower]
+        
+        # Get recent escalation history for comparison
+        recent_history = learning_profile.escalation_history[-10:] if learning_profile.escalation_history else []
+        recent_scores = [record.escalation_score for record in recent_history] if recent_history else [0]
+        avg_recent_score = sum(recent_scores) / len(recent_scores) if recent_scores else 0
+        
+        # Prepare AI analysis prompt
+        ai_prompt = f"""You are a mental health crisis detection AI. Analyze this text for signs of emotional distress or crisis.
+
+User's emotional baseline:
+- Average mood: {learning_profile.emotional_baseline.average_mood_score}/10
+- Baseline sentiment: {learning_profile.emotional_baseline.baseline_sentiment}
+- Typical keywords: {', '.join(learning_profile.emotional_baseline.typical_keywords[:10]) if learning_profile.emotional_baseline.typical_keywords else 'None yet'}
+- Personal triggers: {', '.join(learning_profile.personal_crisis_triggers[:5]) if learning_profile.personal_crisis_triggers else 'None identified yet'}
+- Recent average escalation: {avg_recent_score:.1f}/100
+- High risk incidents: {learning_profile.high_risk_count}
+- Total interactions: {learning_profile.total_interactions}
+
+Text to analyze (from {request.source}):
+"{request.text}"
+
+Context: {request.context if request.context else 'No additional context'}
+
+Provide a JSON response with:
+1. crisis_score (0-100): Overall crisis severity score
+2. emotional_intensity (1-10): How intense/extreme the emotions are
+3. escalation_assessment: "none", "sudden_spike", "gradual_worsening", or "both"
+4. detected_emotions: List of specific emotions detected (e.g., despair, hopelessness, anger)
+5. comparison_to_baseline: How this compares to user's normal emotional state
+6. trigger_popup: boolean - should we trigger emergency popup?
+7. urgency_level: "low", "medium", "high", or "critical"
+8. analysis: Detailed explanation of your assessment
+9. recommended_actions: List of 2-3 immediate recommended actions
+10. new_personal_triggers: Any new keywords/phrases specific to this user that should be tracked
+11. coping_strategy_suggestions: What might help this specific user based on their history
+
+Format as valid JSON."""
+
+        # Call Gemini AI for analysis
+        try:
+            response = model.generate_content(ai_prompt)
+            ai_text = response.text.strip()
+            
+            # Extract JSON from response (handle markdown code blocks)
+            if '```json' in ai_text:
+                ai_text = ai_text.split('```json')[1].split('```')[0].strip()
+            elif '```' in ai_text:
+                ai_text = ai_text.split('```')[1].split('```')[0].strip()
+            
+            import json
+            ai_result = json.loads(ai_text)
+            
+        except Exception as e:
+            logging.error(f"AI analysis failed: {str(e)}")
+            # Fallback to rule-based analysis
+            ai_result = {
+                "crisis_score": len(detected_keywords) * 15 + len(personal_triggers) * 20,
+                "emotional_intensity": min(10, len(detected_keywords) + len(personal_triggers) + 3),
+                "escalation_assessment": "sudden_spike" if len(detected_keywords) >= 2 else "none",
+                "detected_emotions": ["distress"] if detected_keywords else [],
+                "comparison_to_baseline": "Unable to analyze - using rule-based detection",
+                "trigger_popup": len(detected_keywords) >= 2 or len(personal_triggers) >= 1,
+                "urgency_level": "high" if len(detected_keywords) >= 3 else "medium" if detected_keywords else "low",
+                "analysis": f"Rule-based detection: Found {len(detected_keywords)} crisis keywords and {len(personal_triggers)} personal triggers.",
+                "recommended_actions": ["Contact emergency services if in immediate danger", "Reach out to trusted person", "Use coping strategies"],
+                "new_personal_triggers": [],
+                "coping_strategy_suggestions": ["Deep breathing", "Grounding exercise", "Call crisis hotline"]
+            }
+        
+        # Calculate escalation type
+        crisis_score = ai_result.get('crisis_score', 0)
+        escalation_type = "none"
+        
+        if crisis_score > 70:
+            # Check if it's sudden spike or gradual
+            if avg_recent_score < 30 and crisis_score > 70:
+                escalation_type = "sudden_spike"
+            elif avg_recent_score > 40:
+                escalation_type = "gradual"
+            else:
+                escalation_type = "both"
+        elif crisis_score > 50 and avg_recent_score > 35:
+            escalation_type = "gradual"
+        elif crisis_score > 60:
+            escalation_type = "sudden_spike"
+        
+        # Determine severity
+        if crisis_score >= 80:
+            severity = "critical"
+        elif crisis_score >= 60:
+            severity = "high"
+        elif crisis_score >= 35:
+            severity = "medium"
+        else:
+            severity = "low"
+        
+        should_trigger = ai_result.get('trigger_popup', False) or crisis_score >= 60
+        popup_urgency = ai_result.get('urgency_level', 'low')
+        
+        # Update learning profile
+        try:
+            # Add to escalation history
+            new_record = EscalationRecord(
+                timestamp=datetime.now(timezone.utc),
+                severity=severity,
+                escalation_score=crisis_score,
+                text_sample=request.text[:200],  # Store first 200 chars
+                source=request.source
+            )
+            
+            # Keep only last 50 records
+            updated_history = learning_profile.escalation_history[-49:] + [new_record]
+            
+            # Update personal triggers
+            new_triggers = ai_result.get('new_personal_triggers', [])
+            updated_triggers = list(set(learning_profile.personal_crisis_triggers + new_triggers))[:20]  # Keep max 20
+            
+            # Update coping strategies if provided
+            new_coping = ai_result.get('coping_strategy_suggestions', [])
+            updated_coping = list(set(learning_profile.effective_coping_strategies + new_coping))[:15]  # Keep max 15
+            
+            # Update stats
+            high_risk_count = learning_profile.high_risk_count + (1 if severity in ['high', 'critical'] else 0)
+            last_high_risk = datetime.now(timezone.utc) if severity in ['high', 'critical'] else learning_profile.last_high_risk
+            
+            # Update emotional baseline (moving average)
+            mood_score = 10 - (crisis_score / 10)  # Convert crisis score to mood score
+            current_baseline = learning_profile.emotional_baseline.average_mood_score
+            new_baseline = (current_baseline * 0.9 + mood_score * 0.1)  # Weighted average
+            
+            # Determine sentiment
+            if crisis_score >= 50:
+                sentiment = "negative"
+            elif crisis_score <= 20:
+                sentiment = "positive"
+            else:
+                sentiment = "neutral"
+            
+            # Update typical keywords
+            all_keywords = detected_keywords + personal_triggers
+            updated_typical = list(set(learning_profile.emotional_baseline.typical_keywords + all_keywords))[:30]
+            
+            # Perform database update
+            update_doc = {
+                "escalation_history": [
+                    {
+                        "timestamp": rec.timestamp.isoformat(),
+                        "severity": rec.severity,
+                        "escalation_score": rec.escalation_score,
+                        "text_sample": rec.text_sample,
+                        "source": rec.source
+                    } for rec in updated_history
+                ],
+                "personal_crisis_triggers": updated_triggers,
+                "effective_coping_strategies": updated_coping,
+                "total_interactions": learning_profile.total_interactions + 1,
+                "high_risk_count": high_risk_count,
+                "last_high_risk": last_high_risk.isoformat() if last_high_risk else None,
+                "emotional_baseline": {
+                    "average_mood_score": new_baseline,
+                    "typical_keywords": updated_typical,
+                    "baseline_sentiment": sentiment,
+                    "last_updated": datetime.now(timezone.utc).isoformat()
+                },
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.user_learning_profiles.update_one(
+                {"user_id": request.user_id},
+                {"$set": update_doc}
+            )
+            
+        except Exception as e:
+            logging.error(f"Error updating learning profile: {str(e)}")
+            # Continue even if update fails
+        
+        # Build response
+        return EnhancedCrisisAnalysis(
+            is_crisis=crisis_score >= 35,
+            severity=severity,
+            escalation_score=crisis_score,
+            escalation_type=escalation_type,
+            detected_keywords=detected_keywords,
+            personal_triggers_detected=personal_triggers,
+            comparison_to_baseline=ai_result.get('comparison_to_baseline', 'No baseline comparison available'),
+            should_trigger_popup=should_trigger,
+            popup_urgency=popup_urgency,
+            ai_analysis=ai_result.get('analysis', ''),
+            recommended_actions=ai_result.get('recommended_actions', []),
+            follow_up_question=None if should_trigger else "How are you feeling right now? I'm here to support you."
+        )
+        
+    except Exception as e:
+        logging.error(f"Error in crisis text analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/crisis/emergency-response", response_model=EmergencyResponse)
+async def get_emergency_response(request: EmergencyResponseRequest):
+    """
+    Get comprehensive emergency response including close contacts, hotlines, and AI recommendations
+    """
+    try:
+        # Get user's emergency contacts
+        contacts = await db.emergency_contacts.find({"user_id": request.user_id}, {"_id": 0}).to_list(10)
+        has_contacts = len(contacts) > 0
+        
+        close_contacts_list = [
+            {
+                "name": c['name'],
+                "phone": c['phone'],
+                "relationship": c['relationship'],
+                "email": c.get('email', '')
+            } for c in contacts
+        ]
+        
+        # Country-specific crisis hotlines
+        hotlines_map = {
+            "United States": [
+                {"name": "988 Suicide & Crisis Lifeline", "number": "988", "available": "24/7", "country": "US"},
+                {"name": "Crisis Text Line", "number": "Text HOME to 741741", "available": "24/7", "country": "US"},
+                {"name": "SAMHSA National Helpline", "number": "1-800-662-4357", "available": "24/7", "country": "US"}
+            ],
+            "United Kingdom": [
+                {"name": "Samaritans", "number": "116 123", "available": "24/7", "country": "UK"},
+                {"name": "Shout Crisis Text Line", "number": "Text SHOUT to 85258", "available": "24/7", "country": "UK"},
+                {"name": "PAPYRUS (under 35)", "number": "0800 068 4141", "available": "9am-midnight", "country": "UK"}
+            ],
+            "Canada": [
+                {"name": "Canada Suicide Prevention", "number": "1-833-456-4566", "available": "24/7", "country": "CA"},
+                {"name": "Kids Help Phone", "number": "1-800-668-6868", "available": "24/7", "country": "CA"},
+                {"name": "Crisis Text Line", "number": "Text TALK to 686868", "available": "24/7", "country": "CA"}
+            ],
+            "Australia": [
+                {"name": "Lifeline", "number": "13 11 14", "available": "24/7", "country": "AU"},
+                {"name": "Beyond Blue", "number": "1300 22 4636", "available": "24/7", "country": "AU"},
+                {"name": "Kids Helpline", "number": "1800 55 1800", "available": "24/7", "country": "AU"}
+            ],
+            "India": [
+                {"name": "AASRA", "number": "91-9820466726", "available": "24/7", "country": "IN"},
+                {"name": "Sneha India", "number": "91-44-24640050", "available": "24/7", "country": "IN"},
+                {"name": "Vandrevala Foundation", "number": "1860-2662-345", "available": "24/7", "country": "IN"}
+            ]
+        }
+        
+        country = request.user_country or "United States"
+        crisis_hotlines = hotlines_map.get(country, hotlines_map["United States"])
+        
+        # AI-recommended resources based on context
+        ai_prompt = f"""Based on this crisis situation, recommend 3-5 immediate helpful resources or actions.
+
+Severity: {request.severity}
+Context: {request.crisis_context}
+Has close contacts: {has_contacts}
+
+Provide practical, actionable recommendations like:
+- Specific grounding techniques
+- Online crisis chat services
+- Mental health apps
+- Immediate self-care actions
+- Professional resources
+
+Return as a simple numbered list, one recommendation per line."""
+
+        try:
+            response = model.generate_content(ai_prompt)
+            ai_text = response.text.strip()
+            # Parse recommendations (split by newlines and clean up)
+            recommendations = [line.strip() for line in ai_text.split('\n') if line.strip() and not line.strip().startswith('#')]
+            recommendations = [r.lstrip('0123456789.-) ') for r in recommendations][:5]
+        except Exception as e:
+            logging.error(f"AI recommendations failed: {str(e)}")
+            recommendations = [
+                "Practice 5-4-3-2-1 grounding: Name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste",
+                "Try box breathing: Breathe in for 4, hold for 4, out for 4, hold for 4",
+                "Write down your feelings in a journal",
+                "Go to a safe, comfortable place if possible",
+                "Consider reaching out to a therapist or counselor"
+            ]
+        
+        # Build urgent message based on severity
+        if request.severity == "critical":
+            urgent_msg = "🚨 IMMEDIATE ATTENTION NEEDED: If you're in immediate danger or having thoughts of harming yourself, please call emergency services (911) or go to the nearest emergency room right now. You deserve help and support."
+        elif request.severity == "high":
+            urgent_msg = "⚠️ HIGH PRIORITY: Your safety is important. Please reach out to someone you trust or call a crisis hotline immediately. You don't have to go through this alone."
+        elif request.severity == "medium":
+            urgent_msg = "💙 SUPPORT AVAILABLE: It sounds like you're going through a difficult time. Consider reaching out to someone who can support you. Help is available 24/7."
+        else:
+            urgent_msg = "💚 WE'RE HERE: Remember that support is always available if you need it. You're taking a positive step by seeking help."
+        
+        # Follow-up resources
+        follow_up = [
+            "Visit your Crisis Support page to create a safety plan",
+            "Schedule an appointment with a mental health professional",
+            "Join a support group in your area or online",
+            "Download a mental health tracking app",
+            "Practice daily self-care and coping strategies"
+        ]
+        
+        return EmergencyResponse(
+            has_close_contacts=has_contacts,
+            close_contacts=close_contacts_list,
+            crisis_hotlines=crisis_hotlines,
+            ai_recommended_resources=recommendations,
+            urgent_message=urgent_msg,
+            follow_up_resources=follow_up
+        )
+        
+    except Exception as e:
+        logging.error(f"Error getting emergency response: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # Meditation & Breathing Exercise Routes
 
