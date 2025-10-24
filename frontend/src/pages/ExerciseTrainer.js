@@ -34,6 +34,8 @@ const ExerciseTrainer = () => {
   const canvasRef = useRef(null);
   const poseDetectionRef = useRef(null);
   const timerIntervalRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const isDetectionActiveRef = useRef(false);
   const repCountStateRef = useRef({ 
     lastPosition: null, 
     repInProgress: false,
