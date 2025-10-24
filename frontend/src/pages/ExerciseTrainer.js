@@ -18,7 +18,7 @@ const ExerciseTrainer = () => {
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [targetReps, setTargetReps] = useState(10);
-  const [useAICoach, setUseAICoach] = useState(true);
+  const [useAICoach, setUseAICoach] = useState(false); // Changed to false by default to prevent crashes
   const [isExercising, setIsExercising] = useState(false);
   const [currentSession, setCurrentSession] = useState(null);
   const [completedReps, setCompletedReps] = useState(0);
