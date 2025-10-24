@@ -14,6 +14,8 @@ import google.generativeai as genai
 import socketio
 import bcrypt
 import jwt
+import plivo
+import re
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -26,6 +28,21 @@ db = client[os.environ['DB_NAME']]
 # Configure Gemini AI
 genai.configure(api_key=os.environ['GEMINI_API_KEY'])
 model = genai.GenerativeModel('gemini-2.5-flash')
+
+# Configure Plivo Voice API (optional - only if credentials exist)
+PLIVO_AUTH_ID = os.environ.get('PLIVO_AUTH_ID', '')
+PLIVO_AUTH_TOKEN = os.environ.get('PLIVO_AUTH_TOKEN', '')
+PLIVO_PHONE_NUMBER = os.environ.get('PLIVO_PHONE_NUMBER', '')
+plivo_client = None
+
+if PLIVO_AUTH_ID and PLIVO_AUTH_TOKEN:
+    try:
+        plivo_client = plivo.RestClient(auth_id=PLIVO_AUTH_ID, auth_token=PLIVO_AUTH_TOKEN)
+        logging.info("Plivo client initialized successfully")
+    except Exception as e:
+        logging.warning(f"Plivo client initialization failed: {str(e)}")
+else:
+    logging.info("Plivo credentials not found - voice calling features will be disabled")
 
 # Socket.IO setup
 sio = socketio.AsyncServer(
