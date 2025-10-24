@@ -2435,7 +2435,7 @@ Keep it concise and clear."""
             logging.info(f"ℹ️  Authority alert NOT sent for user {request.user_id}: {decision_reason}")
             ai_message = "Alert evaluated but did not meet threshold for authority notification"
         
-        # Log to database for record keeping
+        # Log to database for record keeping with decision reasoning
         alert_record = {
             "alert_id": str(uuid.uuid4()),
             "request_id": request_id,
@@ -2444,7 +2444,8 @@ Keep it concise and clear."""
             "crisis_context": request.crisis_context,
             "ai_message": ai_message,
             "email_sent": email_sent,
-            "alert_email": EMERGENCY_ALERT_EMAIL,
+            "decision_reason": decision_reason,  # WHY email was/wasn't sent
+            "alert_email": EMERGENCY_ALERT_EMAIL if email_sent else None,
             "timestamp": datetime.now(timezone.utc),
             "user_consent": request.user_consent
         }
