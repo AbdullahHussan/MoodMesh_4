@@ -236,7 +236,7 @@ if overlap > 0.7:
 
 ## 🚨 Important Notes
 
-1. **Email address**: Currently `abdullahdeveloper4@gmail.com` - **must be updated** to real emergency service address before production
+1. **Email address**: Currently `ah3146952@gmail.com` - **must be updated** to real emergency service address before production
 
 2. **Legal considerations**: Ensure compliance with:
    - HIPAA (if applicable)
