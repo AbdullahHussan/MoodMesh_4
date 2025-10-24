@@ -2172,44 +2172,7 @@ Return as a simple numbered list, one recommendation per line."""
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def validate_phone_number(phone: str) -> bool:
-    """Validate phone number format"""
-    pattern = r'^\+?1?\d{9,15}$'
-    return bool(re.match(pattern, phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")))
-
-def format_phone_number(phone: str) -> str:
-    """Format phone number to E.164 format"""
-    phone = phone.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
-    if not phone.startswith("+"):
-        if phone.startswith("1") and len(phone) == 11:
-            phone = "+" + phone
-        else:
-            phone = "+1" + phone
-    return phone
-
-def sanitize_for_tts(message: str) -> str:
-    """Prepare message for text-to-speech"""
-    # Remove special characters that confuse TTS
-    message = re.sub(r'[<>{}[\]\\|^`~#@!&*()_+=/?.,\';:"—–]', '', message)
-    message = re.sub(r'\s+', ' ', message)
-    
-    # Replace common abbreviations
-    replacements = {
-        "&": "and",
-        "ASAP": "as soon as possible",
-        "dept.": "department",
-        "hrs": "hours",
-        "mins": "minutes"
-    }
-    
-    for abbr, full in replacements.items():
-        message = re.sub(rf'\b{re.escape(abbr)}\b', full, message, flags=re.IGNORECASE)
-    
-    # Add period if missing
-    if message and not message.endswith(('.', '!', '?')):
-        message += '.'
-    
-    return message.strip()
+ 
 
 
 def send_emergency_email(user_id: str, crisis_context: str, severity: str, ai_message: str):
