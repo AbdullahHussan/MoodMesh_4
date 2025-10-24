@@ -640,13 +640,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Learning System - User Learning Profile"
-    - "AI-Powered Crisis Text Analysis"
-    - "Emergency Response System"
-    - "Emergency Popup Component"
-    - "Crisis Detection React Hook"
-    - "AI Therapist Crisis Integration"
-    - "Mood Log Crisis Integration"
+    - "AI Trainer - TensorFlow Pose Detection"
+    - "AI Trainer Navigation & Routes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
