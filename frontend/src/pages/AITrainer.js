@@ -20,6 +20,7 @@ const AITrainer = () => {
   const [squatPhase, setSquatPhase] = useState("standing"); // standing, squatting
   const [timer, setTimer] = useState(0);
   const [sessionComplete, setSessionComplete] = useState(false);
+  const [currentAngle, setCurrentAngle] = useState(180); // For debug display
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
