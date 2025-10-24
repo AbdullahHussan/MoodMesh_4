@@ -86,7 +86,7 @@ Every evaluation is logged to the database with:
   "crisis_context": "User's text...",
   "email_sent": true, // or false
   "decision_reason": "✓ CRITICAL severity + explicit imminent threat detected",
-  "alert_email": "abdullahdeveloper4@gmail.com", // or null if not sent
+  "alert_email": "ah3146952@gmail.com", // or null if not sent
   "timestamp": "2025-01-XX...",
   "ai_message": "AI-generated intervention message for authorities"
 }
