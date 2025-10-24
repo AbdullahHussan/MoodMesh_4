@@ -200,6 +200,16 @@ const ExerciseTrainer = () => {
   };
 
   const stopCamera = () => {
+    console.log("🛑 Stopping camera and pose detection...");
+    
+    // Stop animation loop
+    isDetectionActiveRef.current = false;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    // Stop video stream
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject;
       const tracks = stream.getTracks();
@@ -208,8 +218,20 @@ const ExerciseTrainer = () => {
       setCameraActive(false);
     }
     
+    // Close pose detection
     if (poseDetectionRef.current) {
+      try {
+        poseDetectionRef.current.close();
+      } catch (e) {
+        console.warn("Error closing pose detection:", e);
+      }
       poseDetectionRef.current = null;
+    }
+    
+    // Clear canvas
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
   };
 
