@@ -328,6 +328,42 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Created progress tracking endpoints: (1) GET /api/exercises/history/{user_id} - returns user's exercise sessions with limit parameter (default 20), sorted by most recent, (2) GET /api/exercises/progress/{user_id} - calculates comprehensive statistics including: total sessions, total reps, total calories burned, total minutes exercised, exercises tried count, favorite exercise (most sessions), average form accuracy for AI coach sessions, current streak (consecutive days), and recent 5 sessions. Streak calculation checks for consecutive daily exercise activity."
+  
+  - task: "AI Learning System - User Learning Profile"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created comprehensive AI learning system with UserLearningProfile model that tracks: (1) Emotional baseline (average mood score, typical keywords, baseline sentiment), (2) Personal crisis triggers learned from user's patterns, (3) Escalation history (last 50 records with timestamps, severity, scores), (4) Effective coping strategies, (5) Total interactions and high-risk incident count. GET /api/crisis/learning-profile/{user_id} endpoint creates or retrieves learning profile. Profile updates automatically with each text analysis."
+  
+  - task: "AI-Powered Crisis Text Analysis"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/crisis/analyze-text endpoint with advanced AI-powered crisis detection using Gemini 2.5 Flash. Analyzes text from ANY source (chat, mood logs, journals). Features: (1) Compares against user's emotional baseline and history, (2) Detects both sudden spikes AND gradual escalation using moving averages, (3) Identifies personal triggers specific to user, (4) Calculates escalation score (0-100), (5) Determines severity (low/medium/high/critical) and popup urgency, (6) Returns AI analysis with recommended actions, (7) Learns new triggers and coping strategies, (8) Updates user's learning profile automatically. Handles fallback to rule-based detection if AI fails."
+  
+  - task: "Emergency Response System"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created POST /api/crisis/emergency-response endpoint that provides comprehensive emergency resources: (1) Fetches user's close contacts from database (name, phone, relationship, email), (2) Returns country-specific crisis hotlines (US: 988, UK: 116 123, Canada: 1-833-456-4566, Australia: 13 11 14, India: 91-9820466726, International options), (3) Generates AI-recommended immediate actions and resources using Gemini based on crisis context and severity, (4) Returns urgent message tailored to severity level (critical/high/medium/low), (5) Provides follow-up resources (safety plan, mental health services). Integrates with existing emergency contacts CRUD endpoints."
 
 frontend:
   - task: "Analytics Dashboard Page"
