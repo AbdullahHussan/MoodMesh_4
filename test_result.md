@@ -376,6 +376,22 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "MAJOR FEATURE: Implemented automated voice calling system using Plivo Voice API for crisis interventions. BACKEND: (1) Installed plivo SDK and added initialization with optional credentials, (2) Created POST /api/crisis/initiate-call endpoint that handles automated emergency calls with consent-based logic (critical=auto-call, high/medium=requires consent), (3) Calls user's close contacts first (up to 3), then recommends crisis hotlines if no contacts, (4) AI-generated personalized voice messages using Gemini based on crisis context, (5) Text-to-speech sanitization for clear voice rendering, (6) Phone number validation and E.164 formatting, (7) Call logging in MongoDB (voice_call_logs, voice_call_requests collections), (8) Returns detailed call status and recipient details. FRONTEND: (1) Updated EmergencyPopup component with 'Call for Help Now' button and automated calling UI, (2) Shows call confirmation for non-critical severity, auto-calls for critical, (3) Real-time call status display with success/failure indicators, (4) Shows call details for each recipient contacted, (5) Integrated with existing useCrisisDetection hook, passes userId prop. SETUP: (1) Added Plivo credentials to backend/.env with placeholders, (2) Created comprehensive VOICE_CALLING_SETUP.md guide with step-by-step instructions, (3) Supports FREE Plivo trial account ($15 credit = ~750 minutes), (4) Graceful fallback if Plivo not configured - feature disabled with helpful error message. FEATURES: Smart consent handling, AI-generated voice messages, calls to saved contacts or crisis hotlines, real-time status updates, cost-effective (~$0.02/min after trial)."
+      - working: "NA"
+        agent: "main"
+        comment: "🚨 CRITICAL UPDATE - Ultra-Conservative Email Alert System: Completely rebuilt /api/crisis/initiate-call endpoint to prevent false positives when alerting REAL authorities. OLD: Email sent EVERY time popup triggered. NEW: Ultra-conservative verification with should_send_emergency_email() function. ONLY sends email when ALL met: (1) Severity='critical' only (not high/medium/low), (2) Explicit imminent threat keywords ('going to kill myself now', 'overdosing', 'about to jump') OR sustained pattern (2+ critical in 24h), (3) No alert sent in last 4 hours (cooldown), (4) Text not 70%+ similar to recent alerts. Logs detailed decision_reason to crisis_alert_logs. Prevents wasting emergency resources. Email currently goes to abdullahdeveloper4@gmail.com, will be changed to real emergency services. Documentation created at /app/EMERGENCY_EMAIL_SYSTEM_DOCUMENTATION.md."
+
+  - task: "Ultra-Conservative Emergency Email Alert System"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created ultra-conservative email alert system for contacting REAL authorities (currently abdullahdeveloper4@gmail.com). Built should_send_emergency_email() function with 4-layer verification: (1) Severity check - only 'critical' qualifies (high/medium/low get popup only), (2) Threat detection - explicit keywords like 'going to kill myself now', 'overdosing', 'about to jump', 'gun', 'hanging myself' OR sustained pattern check (2+ critical incidents in 24h from learning profile), (3) Cooldown enforcement - must be 4+ hours since last authority alert to same user, (4) Deduplication - text must be <70% similar to recent alerts (prevents repeat spam). Returns (bool, reason) tuple. Modified /api/crisis/initiate-call to call verification first before sending email. Enhanced email template with verified critical status header and professional formatting for emergency responders. All decisions logged to crisis_alert_logs with decision_reason field for transparency and auditing. Created comprehensive documentation at /app/EMERGENCY_EMAIL_SYSTEM_DOCUMENTATION.md covering rules, examples, configuration, testing scenarios. This prevents false positives that waste emergency resources while maintaining safety for genuine crises."
+
 
 frontend:
   - task: "Analytics Dashboard Page"
