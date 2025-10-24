@@ -417,24 +417,33 @@ const ExerciseTrainer = () => {
     
     const canvas = canvasRef.current;
     
+    // Draw timer (top left below body detected indicator)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(10, 60, 150, 50);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('⏱️ ' + formatTime(timer), 20, 95);
+    
     // Draw rep counter (top right)
     const progress = completedReps / targetReps;
     const counterBg = progress >= 1 ? '#10B981' : progress >= 0.5 ? '#3B82F6' : '#6366F1';
     
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(canvas.width - 180, 10, 170, 100);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(canvas.width - 180, 60, 170, 100);
     
     ctx.fillStyle = counterBg;
-    ctx.fillRect(canvas.width - 180, 10, 170, 8);
-    ctx.fillRect(canvas.width - 180, 10, 170 * progress, 8);
+    ctx.fillRect(canvas.width - 180, 60, 170, 8);
+    ctx.fillRect(canvas.width - 180, 60, 170 * progress, 8);
     
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(completedReps, canvas.width - 95, 65);
+    ctx.fillText(completedReps, canvas.width - 95, 115);
     
     ctx.font = '16px Arial';
-    ctx.fillText(`of ${targetReps} reps`, canvas.width - 95, 90);
+    ctx.fillText(`of ${targetReps} reps`, canvas.width - 95, 140);
     
     // Draw form feedback (bottom center)
     if (formFeedback.length > 0) {
@@ -442,34 +451,25 @@ const ExerciseTrainer = () => {
       const isGood = feedback.includes('Perfect') || feedback.includes('Great') || feedback.includes('Excellent') || feedback.includes('Good');
       const isBad = feedback.includes('incorrect') || feedback.includes('Wrong') || feedback.includes('too');
       
-      const bgColor = isGood ? 'rgba(16, 185, 129, 0.9)' : isBad ? 'rgba(239, 68, 68, 0.9)' : 'rgba(251, 191, 36, 0.9)';
+      const bgColor = isGood ? 'rgba(16, 185, 129, 0.95)' : isBad ? 'rgba(239, 68, 68, 0.95)' : 'rgba(251, 191, 36, 0.95)';
       const icon = isGood ? '✓' : isBad ? '✗' : '⚠';
       
       ctx.font = '18px Arial';
       const textWidth = ctx.measureText(feedback).width;
-      const boxWidth = textWidth + 80;
+      const boxWidth = Math.min(textWidth + 80, canvas.width - 40);
       const boxX = (canvas.width - boxWidth) / 2;
       
       ctx.fillStyle = bgColor;
       ctx.fillRect(boxX, canvas.height - 80, boxWidth, 60);
       
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 24px Arial';
+      ctx.font = 'bold 28px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText(icon, boxX + 15, canvas.height - 45);
+      ctx.fillText(icon, boxX + 15, canvas.height - 42);
       
-      ctx.font = '18px Arial';
-      ctx.fillText(feedback, boxX + 50, canvas.height - 45);
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(feedback, boxX + 55, canvas.height - 42);
     }
-    
-    // Draw timer (top left)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(10, 10, 120, 50);
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(formatTime(timer), 20, 43);
     
     ctx.textAlign = 'start'; // Reset
   };
