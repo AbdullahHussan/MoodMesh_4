@@ -22,7 +22,6 @@ import Achievements from "@/pages/Achievements";
 import CrisisSupport from "@/pages/CrisisSupport";
 import Meditation from "@/pages/Meditation";
 import Resources from "@/pages/Resources";
-import ExerciseTrainer from "@/pages/ExerciseTrainer";
 import CrisisButton from "@/components/CrisisButton";
 import EmergencyPopup from "@/components/EmergencyPopup";
 import useCrisisDetection from "@/hooks/useCrisisDetection";
