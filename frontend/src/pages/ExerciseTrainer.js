@@ -409,6 +409,51 @@ const ExerciseTrainer = () => {
     drawOverlayUISimple(ctx);
   };
 
+  // Simplified landmark drawing - only essential points
+  const drawLandmarksSimplified = (ctx, landmarks) => {
+    // Only draw minimal connections for performance
+    const connections = [
+      [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms
+      [23, 25], [24, 26], [25, 27], [26, 28], // Legs
+    ];
+    
+    ctx.strokeStyle = '#00FF00';
+    ctx.lineWidth = 2;
+    
+    connections.forEach(([start, end]) => {
+      const startPoint = landmarks[start];
+      const endPoint = landmarks[end];
+      
+      if (startPoint && endPoint && startPoint.visibility > 0.5 && endPoint.visibility > 0.5) {
+        ctx.beginPath();
+        ctx.moveTo(startPoint.x * 640, startPoint.y * 480);
+        ctx.lineTo(endPoint.x * 640, endPoint.y * 480);
+        ctx.stroke();
+      }
+    });
+  };
+
+  // Simplified overlay UI - minimal drawing
+  const drawOverlayUISimple = (ctx) => {
+    if (!isExercising) return;
+    
+    // Timer - top right
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(540, 10, 90, 30);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'right';
+    const minutes = Math.floor(timer / 60);
+    const seconds = timer % 60;
+    ctx.fillText(`${minutes}:${seconds.toString().padStart(2, '0')}`, 620, 32);
+    
+    // Rep counter
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(540, 50, 90, 30);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(`${completedReps}/${targetReps}`, 620, 72);
+  };
+
   const drawLandmarks = (ctx, landmarks) => {
     // Draw connections
     const connections = [
