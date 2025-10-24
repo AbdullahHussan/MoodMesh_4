@@ -289,9 +289,18 @@ const ExerciseTrainer = () => {
     }
     
     try {
-      await poseDetectionRef.current.send({ image: videoRef.current });
+      // Check if pose detection is ready before sending
+      if (poseDetectionRef.current && typeof poseDetectionRef.current.send === 'function') {
+        await poseDetectionRef.current.send({ image: videoRef.current });
+      } else {
+        console.warn("Pose detection send method not available yet");
+      }
     } catch (error) {
       console.error("Pose detection error:", error);
+      // Don't show error toast on every frame, just log it
+      if (error.message && error.message.includes('data')) {
+        console.error("Model data loading issue - check CDN connectivity");
+      }
     }
     
     // Continue loop regardless of isExercising to maintain smooth video
