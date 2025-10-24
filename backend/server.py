@@ -3941,10 +3941,6 @@ async def get_categories_summary():
     except Exception as e:
         logging.error(f"Error fetching categories summary: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# Socket.IO events
-    # STRENGTH EXERCISES
     {
         "id": "push-ups",
         "name": "Push-Ups",
