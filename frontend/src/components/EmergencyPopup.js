@@ -40,6 +40,67 @@ const EmergencyPopup = ({
     window.location.href = `sms:${cleanNumber}`;
   };
 
+  const initiateAutomatedCall = async (withConsent = false) => {
+    if (!userId) {
+      setCallStatus({ success: false, message: "User ID not found" });
+      return;
+    }
+
+    setCalling(true);
+    setCallStatus(null);
+    setShowCallConfirm(false);
+
+    try {
+      const BACKEND_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${BACKEND_URL}/api/crisis/initiate-call`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          crisis_context: emergencyData.urgent_message || "User experiencing crisis and may need immediate support",
+          severity: severity,
+          user_consent: withConsent || severity === 'critical'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setCallStatus({
+          success: true,
+          message: data.message,
+          calls_initiated: data.calls_initiated,
+          details: data.call_details
+        });
+      } else {
+        setCallStatus({
+          success: false,
+          message: data.detail || "Failed to initiate call"
+        });
+      }
+    } catch (error) {
+      console.error('Error initiating call:', error);
+      setCallStatus({
+        success: false,
+        message: "Failed to connect to calling service. Please try manual calling."
+      });
+    } finally {
+      setCalling(false);
+    }
+  };
+
+  const handleCallForHelp = () => {
+    // For critical severity, call immediately without confirmation
+    if (severity === 'critical') {
+      initiateAutomatedCall(false);
+    } else {
+      // For high/medium, show confirmation dialog
+      setShowCallConfirm(true);
+    }
+  };
+
   // Determine popup styling based on severity
   const getSeverityStyles = () => {
     switch (severity) {
