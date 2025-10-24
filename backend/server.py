@@ -2289,49 +2289,151 @@ ACTIONS: {ai_message[:200]}...
         return False
 
 
+async def should_send_emergency_email(user_id: str, severity: str, crisis_context: str) -> tuple[bool, str]:
+    """
+    ULTRA-CONSERVATIVE decision logic for alerting authorities
+    Returns (should_send: bool, reason: str)
+    
+    CRITICAL: We're alerting REAL authorities/emergency services - false positives are serious!
+    """
+    try:
+        # RULE 1: Only CRITICAL severity warrants alerting authorities
+        # Medium/High/Low get popup support but NO authority alert
+        if severity != "critical":
+            return False, f"Severity '{severity}' below CRITICAL threshold - popup support sufficient"
+        
+        # RULE 2: Check recent alert history - avoid duplicate alerts to authorities
+        recent_cutoff = datetime.now(timezone.utc) - timedelta(hours=4)  # 4-hour cooldown
+        recent_alerts = await db.crisis_alert_logs.find({
+            "user_id": user_id,
+            "timestamp": {"$gte": recent_cutoff},
+            "email_sent": True
+        }).sort("timestamp", -1).to_list(10)
+        
+        if recent_alerts:
+            last_alert_time = recent_alerts[0]["timestamp"]
+            time_since = datetime.now(timezone.utc) - last_alert_time
+            minutes_since = time_since.total_seconds() / 60
+            
+            # Must be at least 4 hours since last authority alert
+            if minutes_since < 240:  # 4 hours = 240 minutes
+                return False, f"Authority alerted {minutes_since:.0f} min ago - cooldown period (4hr minimum)"
+        
+        # RULE 3: Verify this is genuinely CRITICAL with explicit high-risk keywords
+        # Even for "critical" severity, double-check with explicit keyword matching
+        explicit_critical_keywords = [
+            'going to kill myself', 'about to kill myself', 'killing myself now',
+            'going to end my life', 'about to end my life', 'ending my life now',
+            'suicide tonight', 'suicide today', 'suicide right now',
+            'overdose now', 'overdosing', 'taking pills',
+            'going to jump', 'about to jump', 'gun', 'hanging myself'
+        ]
+        
+        crisis_lower = crisis_context.lower()
+        has_explicit_threat = any(keyword in crisis_lower for keyword in explicit_critical_keywords)
+        
+        if not has_explicit_threat:
+            # Check user's recent escalation history for pattern
+            learning_profile = await db.user_learning_profiles.find_one({"user_id": user_id})
+            
+            if learning_profile:
+                # Check if user has multiple critical incidents in last 24 hours
+                recent_critical = [
+                    record for record in learning_profile.get("escalation_history", [])
+                    if record.get("severity") == "critical" and 
+                    (datetime.now(timezone.utc) - record.get("timestamp")).total_seconds() < 86400
+                ]
+                
+                # Need at least 2 critical incidents in 24h OR explicit keywords to alert authorities
+                if len(recent_critical) < 2:
+                    return False, "CRITICAL severity but no explicit imminent threat detected - requires sustained pattern or explicit keywords for authority alert"
+        
+        # RULE 4: Check if this is genuinely NEW crisis content (not repeat text)
+        if recent_alerts:
+            last_context = recent_alerts[0].get("crisis_context", "")
+            # Calculate similarity (simple word overlap)
+            words_current = set(crisis_context.lower().split())
+            words_last = set(last_context.lower().split())
+            
+            if len(words_current) > 0:
+                overlap = len(words_current & words_last) / len(words_current)
+                if overlap > 0.7:  # 70% similar text
+                    return False, "Crisis text too similar to recent alert - likely repeat/not escalating"
+        
+        # ALL CHECKS PASSED - This warrants authority alert
+        reason = "✓ CRITICAL severity + "
+        if has_explicit_threat:
+            reason += "explicit imminent threat detected"
+        else:
+            reason += "sustained critical pattern confirmed"
+        
+        return True, reason
+        
+    except Exception as e:
+        logging.error(f"Error in should_send_emergency_email: {str(e)}")
+        # On error, err on side of caution - don't alert unless absolutely clear
+        return False, f"Decision error (safety failsafe) - {str(e)}"
+
+
 @api_router.post("/crisis/initiate-call", response_model=VoiceCallResponse)
 async def initiate_emergency_call(request: EmergencyCallRequest):
     """
-    Send silent emergency alert email to monitoring system
-    HIDDEN FROM USER - Prevents blocking help during crisis
-    No consent required - automatic safety intervention
+    ULTRA-CONSERVATIVE emergency authority alert system
+    Only sends email to authorities for GENUINELY CRITICAL situations
+    Prevents false positives that waste emergency resources
     """
     try:
         request_id = str(uuid.uuid4())
         
-        # Generate AI-powered crisis message
-        ai_message_prompt = f"""Generate a brief, compassionate crisis intervention message (3-4 sentences).
+        # CRITICAL DECISION: Should we alert authorities?
+        should_send, decision_reason = await should_send_emergency_email(
+            user_id=request.user_id,
+            severity=request.severity,
+            crisis_context=request.crisis_context
+        )
+        
+        email_sent = False
+        ai_message = ""
+        
+        if should_send:
+            # Generate AI-powered crisis message for authorities
+            ai_message_prompt = f"""Generate a brief, professional crisis intervention message for emergency services (3-4 sentences).
 
 Context: {request.crisis_context}
 Severity: {request.severity}
 
 The message should:
-1. Describe the concerning behavior/situation
+1. Describe the concerning behavior/situation clearly
 2. Recommend immediate actions for intervention
-3. Be professional and actionable
-4. Convey appropriate urgency for {request.severity} severity
+3. Be professional and actionable for emergency responders
+4. Convey appropriate urgency
 
 Keep it concise and clear."""
 
-        try:
-            ai_response = model.generate_content(ai_message_prompt)
-            ai_message = ai_response.text.strip()
-        except Exception as e:
-            logging.error(f"AI message generation failed: {str(e)}")
-            # Fallback message
-            ai_message = (
-                f"A user is experiencing a {request.severity} priority mental health crisis. "
-                f"Immediate professional intervention is recommended. "
-                f"Please assess the situation and provide appropriate support."
+            try:
+                ai_response = model.generate_content(ai_message_prompt)
+                ai_message = ai_response.text.strip()
+            except Exception as e:
+                logging.error(f"AI message generation failed: {str(e)}")
+                # Fallback message
+                ai_message = (
+                    f"A user is experiencing a CRITICAL mental health crisis with imminent risk. "
+                    f"Immediate professional intervention is strongly recommended. "
+                    f"Context: {request.crisis_context[:200]}"
+                )
+            
+            # Send emergency email to authorities
+            email_sent = send_emergency_email(
+                user_id=request.user_id,
+                crisis_context=request.crisis_context,
+                severity=request.severity,
+                ai_message=ai_message
             )
-        
-        # Send emergency email silently (hidden from user)
-        email_sent = send_emergency_email(
-            user_id=request.user_id,
-            crisis_context=request.crisis_context,
-            severity=request.severity,
-            ai_message=ai_message
-        )
+            
+            logging.critical(f"🚨 AUTHORITY ALERT SENT for user {request.user_id}: {decision_reason}")
+        else:
+            logging.info(f"ℹ️  Authority alert NOT sent for user {request.user_id}: {decision_reason}")
+            ai_message = "Alert evaluated but did not meet threshold for authority notification"
         
         # Log to database for record keeping
         alert_record = {
