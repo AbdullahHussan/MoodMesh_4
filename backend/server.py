@@ -3941,7 +3941,19 @@ async def get_categories_summary():
     except Exception as e:
         logging.error(f"Error fetching categories summary: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    {
+
+
+# Socket.IO events
+@sio.event
+async def connect(sid, environ):
+    logging.info(f"Client connected: {sid}")
+
+@sio.event
+async def disconnect(sid):
+    logging.info(f"Client disconnected: {sid}")
+
+@sio.event
+async def join_room(sid, data):
         "id": "push-ups",
         "name": "Push-Ups",
         "description": "Classic upper body exercise that targets chest, shoulders, and triceps.",
