@@ -254,7 +254,7 @@ db.crisis_alert_logs.aggregate([
 ## 🔄 Migration Path
 
 ### Phase 1: Testing (Current)
-- Email goes to `abdullahdeveloper4@gmail.com`
+- Email goes to `ah3146952@gmail.com`
 - Monitor decision logs
 - Tune thresholds based on data
 
