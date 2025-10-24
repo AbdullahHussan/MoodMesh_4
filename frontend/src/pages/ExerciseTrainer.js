@@ -301,6 +301,12 @@ const ExerciseTrainer = () => {
   };
 
   const detectPose = async () => {
+    // Check if detection should continue
+    if (!isDetectionActiveRef.current) {
+      console.log("Pose detection stopped");
+      return;
+    }
+    
     if (!poseDetectionRef.current) {
       console.log("Pose detection not initialized yet");
       return;
@@ -314,7 +320,7 @@ const ExerciseTrainer = () => {
     if (videoRef.current.readyState < 2) {
       console.log("Video not ready yet, readyState:", videoRef.current.readyState);
       // Continue loop to wait for video
-      requestAnimationFrame(detectPose);
+      animationFrameRef.current = requestAnimationFrame(detectPose);
       return;
     }
     
@@ -328,13 +334,19 @@ const ExerciseTrainer = () => {
     } catch (error) {
       console.error("Pose detection error:", error);
       // Don't show error toast on every frame, just log it
-      if (error.message && error.message.includes('data')) {
-        console.error("Model data loading issue - check CDN connectivity");
+      if (error.message && (error.message.includes('data') || error.message.includes('model'))) {
+        console.error("⚠️ Model loading issue - MediaPipe files may not be accessible from CDN");
+        toast.error("AI Coach initialization failed. Try refreshing the page.");
+        isDetectionActiveRef.current = false;
+        stopCamera();
+        return;
       }
     }
     
-    // Continue loop regardless of isExercising to maintain smooth video
-    requestAnimationFrame(detectPose);
+    // Continue loop only if detection is still active
+    if (isDetectionActiveRef.current) {
+      animationFrameRef.current = requestAnimationFrame(detectPose);
+    }
   };
 
   const onPoseResults = (results) => {
