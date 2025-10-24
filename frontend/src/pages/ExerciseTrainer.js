@@ -357,77 +357,56 @@ const ExerciseTrainer = () => {
   };
 
   const onPoseResults = (results) => {
-    if (!canvasRef.current) {
-      console.warn("Canvas ref not available");
+    // Early exits to reduce processing
+    if (!canvasRef.current || !isDetectionActiveRef.current) {
       return;
     }
     
     // Validate results object
     if (!results) {
-      console.warn("Pose results is null or undefined");
       return;
     }
     
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
     
     if (!ctx) {
-      console.error("Could not get canvas context");
       return;
     }
     
-    // Clear canvas
+    // Clear canvas efficiently
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw video frame FIRST
+    // Draw video frame (no try-catch to reduce overhead)
     if (videoRef.current && videoRef.current.readyState >= 2) {
-      try {
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      } catch (error) {
-        console.error("Error drawing video to canvas:", error);
-        // Draw black background if video fails
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     } else {
-      // Video not ready, draw black background with message
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '20px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Loading camera feed...', 320, 240);
+      return; // Skip rest if video not ready
     }
     
-    // Draw pose landmarks if detected
+    // Draw pose landmarks if detected - simplified
     if (results.poseLandmarks && Array.isArray(results.poseLandmarks) && results.poseLandmarks.length > 0) {
-      // Draw landmarks OVER the video
-      drawLandmarks(ctx, results.poseLandmarks);
+      // Simplified landmark drawing
+      drawLandmarksSimplified(ctx, results.poseLandmarks);
       
-      // Add "Body Detected" indicator at top
+      // Simple indicator
       ctx.fillStyle = 'rgba(16, 185, 129, 0.9)';
-      ctx.fillRect(10, 10, 200, 40);
+      ctx.fillRect(10, 10, 150, 30);
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 18px Arial';
+      ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText('✓ Body Detected', 20, 35);
+      ctx.fillText('✓ Tracking', 20, 30);
       
       // Analyze form and count reps only if exercising
       if (isExercising && selectedExercise) {
         analyzeFormAndCountReps(results.poseLandmarks);
       }
-    } else {
-      // No pose detected - show prominent warning
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
-      ctx.fillRect(10, 10, 250, 50);
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText('⚠️ No Body Detected', 20, 40);
     }
     
-    // Draw overlay UI (rep counter, timer, feedback) LAST so it's on top
-    drawOverlayUI(ctx);
+    // Draw simple overlay UI
+    drawOverlayUISimple(ctx);
   };
 
   const drawLandmarks = (ctx, landmarks) => {
