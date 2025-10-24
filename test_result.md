@@ -365,6 +365,18 @@ backend:
         agent: "main"
         comment: "Created POST /api/crisis/emergency-response endpoint that provides comprehensive emergency resources: (1) Fetches user's close contacts from database (name, phone, relationship, email), (2) Returns country-specific crisis hotlines (US: 988, UK: 116 123, Canada: 1-833-456-4566, Australia: 13 11 14, India: 91-9820466726, International options), (3) Generates AI-recommended immediate actions and resources using Gemini based on crisis context and severity, (4) Returns urgent message tailored to severity level (critical/high/medium/low), (5) Provides follow-up resources (safety plan, mental health services). Integrates with existing emergency contacts CRUD endpoints."
 
+  - task: "AI-Powered Voice Calling for Crisis Situations"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/components/EmergencyPopup.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MAJOR FEATURE: Implemented automated voice calling system using Plivo Voice API for crisis interventions. BACKEND: (1) Installed plivo SDK and added initialization with optional credentials, (2) Created POST /api/crisis/initiate-call endpoint that handles automated emergency calls with consent-based logic (critical=auto-call, high/medium=requires consent), (3) Calls user's close contacts first (up to 3), then recommends crisis hotlines if no contacts, (4) AI-generated personalized voice messages using Gemini based on crisis context, (5) Text-to-speech sanitization for clear voice rendering, (6) Phone number validation and E.164 formatting, (7) Call logging in MongoDB (voice_call_logs, voice_call_requests collections), (8) Returns detailed call status and recipient details. FRONTEND: (1) Updated EmergencyPopup component with 'Call for Help Now' button and automated calling UI, (2) Shows call confirmation for non-critical severity, auto-calls for critical, (3) Real-time call status display with success/failure indicators, (4) Shows call details for each recipient contacted, (5) Integrated with existing useCrisisDetection hook, passes userId prop. SETUP: (1) Added Plivo credentials to backend/.env with placeholders, (2) Created comprehensive VOICE_CALLING_SETUP.md guide with step-by-step instructions, (3) Supports FREE Plivo trial account ($15 credit = ~750 minutes), (4) Graceful fallback if Plivo not configured - feature disabled with helpful error message. FEATURES: Smart consent handling, AI-generated voice messages, calls to saved contacts or crisis hotlines, real-time status updates, cost-effective (~$0.02/min after trial)."
+
 frontend:
   - task: "Analytics Dashboard Page"
     implemented: true
