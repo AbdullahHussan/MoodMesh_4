@@ -327,6 +327,9 @@ const AITrainer = () => {
     
     // Average knee angle
     const avgKneeAngle = (leftKneeAngle + rightKneeAngle) / 2;
+    
+    // Update current angle for display
+    setCurrentAngle(avgKneeAngle);
 
     // Debug logging (optional - comment out in production)
     console.log(`Knee Angle: ${avgKneeAngle.toFixed(1)}°, Phase: ${squatPhase}, Min: ${minKneeAngleRef.current.toFixed(1)}°`);
