@@ -3942,8 +3942,8 @@ async def get_categories_summary():
         logging.error(f"Error fetching categories summary: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Exercise library with pose detection requirements
-EXERCISE_LIBRARY = [
+
+# Socket.IO events
     # STRENGTH EXERCISES
     {
         "id": "push-ups",
