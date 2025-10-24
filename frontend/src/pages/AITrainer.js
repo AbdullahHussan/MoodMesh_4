@@ -315,8 +315,8 @@ const AITrainer = () => {
       return;
     }
 
-    if (leftHip.score < 0.3 || leftKnee.score < 0.3 || leftAnkle.score < 0.3 ||
-        rightHip.score < 0.3 || rightKnee.score < 0.3 || rightAnkle.score < 0.3) {
+    if (leftHip.score < 0.2 || leftKnee.score < 0.2 || leftAnkle.score < 0.2 ||
+        rightHip.score < 0.2 || rightKnee.score < 0.2 || rightAnkle.score < 0.2) {
       return;
     }
 
@@ -327,40 +327,46 @@ const AITrainer = () => {
     // Average knee angle
     const avgKneeAngle = (leftKneeAngle + rightKneeAngle) / 2;
 
+    // Debug logging (optional - comment out in production)
+    console.log(`Knee Angle: ${avgKneeAngle.toFixed(1)}°, Phase: ${squatPhase}, Min: ${minKneeAngleRef.current.toFixed(1)}°`);
+
     // Track minimum knee angle during squat
     if (avgKneeAngle < minKneeAngleRef.current) {
       minKneeAngleRef.current = avgKneeAngle;
     }
 
-    // Squat detection thresholds (with 80-90% tolerance)
-    const STANDING_ANGLE = 160; // Standing position
-    const SQUAT_ANGLE = 100; // Deep squat position
-    const TOLERANCE = 0.85; // 85% tolerance (80-90% range)
+    // More forgiving thresholds for better detection
+    const STANDING_ANGLE = 150; // Standing position (more forgiving)
+    const SQUAT_ANGLE = 120; // Squat position threshold (more forgiving)
+    const MIN_SQUAT_DEPTH = 130; // Minimum depth to count as a squat
 
     // Determine form quality based on squat depth
     if (squatPhase === "squatting") {
-      // Good squat: knee angle between 70-100 degrees
-      if (minKneeAngleRef.current >= 70 && minKneeAngleRef.current <= 100) {
+      // Good squat: knee angle between 60-110 degrees
+      if (minKneeAngleRef.current >= 60 && minKneeAngleRef.current <= 110) {
         setFormQuality(100);
-      } else if (minKneeAngleRef.current > 100 && minKneeAngleRef.current <= 120) {
-        setFormQuality(85); // Acceptable but not deep enough
+      } else if (minKneeAngleRef.current > 110 && minKneeAngleRef.current <= 130) {
+        setFormQuality(85); // Acceptable
       } else {
-        setFormQuality(70); // Poor form
+        setFormQuality(70); // Shallow but still counting
       }
     }
 
-    // Detect squat phases
-    if (squatPhase === "standing" && avgKneeAngle < SQUAT_ANGLE * TOLERANCE) {
+    // Detect squat phases with more forgiving thresholds
+    if (squatPhase === "standing" && avgKneeAngle < SQUAT_ANGLE) {
       // Entered squat position
+      console.log("🔽 Squatting phase started");
       setSquatPhase("squatting");
       minKneeAngleRef.current = avgKneeAngle;
-    } else if (squatPhase === "squatting" && avgKneeAngle > STANDING_ANGLE * TOLERANCE) {
+    } else if (squatPhase === "squatting" && avgKneeAngle > STANDING_ANGLE) {
       // Returned to standing position - count the rep
+      console.log(`🔼 Standing phase - Min angle was: ${minKneeAngleRef.current.toFixed(1)}°`);
       
-      // Check if squat was deep enough (at least to 90 degrees with tolerance)
-      if (minKneeAngleRef.current <= 100 * (1 / TOLERANCE)) {
+      // Check if squat was deep enough (more forgiving threshold)
+      if (minKneeAngleRef.current <= MIN_SQUAT_DEPTH) {
         setRepCount(prev => {
           const newCount = prev + 1;
+          console.log(`✅ Rep ${newCount} counted!`);
           
           // Check if target reached
           if (newCount >= targetReps) {
@@ -372,6 +378,7 @@ const AITrainer = () => {
           return newCount;
         });
       } else {
+        console.log(`❌ Squat too shallow: ${minKneeAngleRef.current.toFixed(1)}° > ${MIN_SQUAT_DEPTH}°`);
         toast.warning("Squat too shallow. Go deeper!");
         setFormQuality(60);
       }
